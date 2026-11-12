@@ -10,7 +10,7 @@
   --bg:#EDF1F3; --surface:#FFFFFF; --ink:#14212B; --muted:#5B6B76; --rule:#D5DDE2;
   --accent:#A85A22; --ok:#1C7A4B; --ok-bg:#E2F2E9; --no:#7D8893; --no-bg:#EEF0F2; --late:#B0471A;
   --menu:#2A3640; --menu-ink:#F2F5F7; --shadow:0 -6px 24px rgba(20,33,43,.18);
-  --t1:#E8960F; --t2:#0A86BD; --t3:#D4502A; --t4:#1D5FAE; --t5:#B5287E; --t6:#7A4A2A; --t7:#6C7C88; --t8:#0E8A4C; --t9:#C62832; --m1:#11807F;
+  --t1:#E8960F; --t2:#0A86BD; --t3:#D4502A; --t4:#1D5FAE; --t5:#B5287E; --t6:#7A4A2A; --t7:#6C7C88; --t8:#0E8A4C; --t9:#C62832; --m1:#11807F; --bmt:#E8900F; --ccn:#D11F2F; --sco:#005AA3; --shl:#00954C; --hun:#833134;
   --rdot:#E5322D;
   --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
   --body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
@@ -19,12 +19,12 @@
   --bg:#0F171D; --surface:#172129; --ink:#E6EDF1; --muted:#93A3AE; --rule:#26343E;
   --accent:#D9925A; --ok:#4CC38A; --ok-bg:#16352A; --no:#7F8D98; --no-bg:#1D2932; --late:#F0905E;
   --menu:#E6EDF1; --menu-ink:#14212B; --shadow:0 -6px 24px rgba(0,0,0,.5);
-  --t1:#F2AE3D; --t2:#3DB3E6; --t3:#EE7650; --t4:#5B93E0; --t5:#E060AE; --t6:#B98058; --t7:#9AAAB5; --t8:#35B871; --t9:#F0646C; --m1:#2FB3B0; color-scheme:dark }}
+  --t1:#F2AE3D; --t2:#3DB3E6; --t3:#EE7650; --t4:#5B93E0; --t5:#E060AE; --t6:#B98058; --t7:#9AAAB5; --t8:#35B871; --t9:#F0646C; --m1:#2FB3B0; --bmt:#F7B54D; --ccn:#F0646C; --sco:#4E9BE0; --shl:#35B871; --hun:#C9727A; color-scheme:dark }}
 :root[data-theme="dark"]{
   --bg:#0F171D; --surface:#172129; --ink:#E6EDF1; --muted:#93A3AE; --rule:#26343E;
   --accent:#D9925A; --ok:#4CC38A; --ok-bg:#16352A; --no:#7F8D98; --no-bg:#1D2932; --late:#F0905E;
   --menu:#E6EDF1; --menu-ink:#14212B; --shadow:0 -6px 24px rgba(0,0,0,.5);
-  --t1:#F2AE3D; --t2:#3DB3E6; --t3:#EE7650; --t4:#5B93E0; --t5:#E060AE; --t6:#B98058; --t7:#9AAAB5; --t8:#35B871; --t9:#F0646C; --m1:#2FB3B0; color-scheme:dark }
+  --t1:#F2AE3D; --t2:#3DB3E6; --t3:#EE7650; --t4:#5B93E0; --t5:#E060AE; --t6:#B98058; --t7:#9AAAB5; --t8:#35B871; --t9:#F0646C; --m1:#2FB3B0; --bmt:#F7B54D; --ccn:#F0646C; --sco:#4E9BE0; --shl:#35B871; --hun:#C9727A; color-scheme:dark }
 
 [hidden]{display:none!important}
 html,body{height:100%}
@@ -85,6 +85,23 @@ html,body,#map,#map *{-webkit-tap-highlight-color:transparent}
 #map .rt.main{stroke-width:9}
 #map .rt.draw{stroke-dasharray:1 1;stroke-dashoffset:1;animation:rtdraw linear both}
 @keyframes rtdraw{to{stroke-dashoffset:0}}
+/* 경로 진행 띠(열차 안 화면처럼): 내 위치까지 빨갛게, 끝은 깜박임 */
+.prog{border:1px solid var(--rule);border-radius:10px;background:var(--surface);padding:10px 0 4px}
+.ptxt{padding:0 12px;font-size:14px;font-weight:700}.ptxt small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
+.pbtn{margin:0 12px;border:1px solid var(--rule);border-radius:999px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;padding:7px 14px;cursor:pointer}
+.pscroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}.pscroll::-webkit-scrollbar{display:none}
+.ptrack{position:relative;height:118px}
+.pseg{position:absolute;top:22px;height:8px;opacity:.45}
+.pfill{position:absolute;top:21px;height:10px;background:#E5322D;border-radius:5px}
+.pdot{position:absolute;top:18px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--bg);border:3px solid var(--muted);box-sizing:border-box}
+.pdot.done{border-color:#E5322D;background:#E5322D}.pdot.x{width:20px;height:20px;margin-left:-10px;top:16px;border-width:4px;border-color:var(--ink)}.pdot.x.done{border-color:#E5322D;background:var(--bg)}
+.plab{position:absolute;top:40px;font-size:12px;white-space:nowrap;transform:rotate(40deg);transform-origin:0 0;color:var(--muted)}
+.plab.on{color:var(--ink);font-weight:700}.plab.x{color:var(--ink)}
+.pme{position:absolute;top:26px;width:0;height:0}
+.pme::before,.pme::after{content:"";position:absolute;left:-9px;top:-9px;width:18px;height:18px;border-radius:50%;background:#E5322D}
+.pme::before{animation:mepulse 1.4s ease-out infinite}.pme::after{border:3px solid #fff;box-sizing:border-box;animation:meblink 1s steps(2,start) infinite}
+@keyframes mepulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.8);opacity:0}}
+@keyframes meblink{50%{opacity:.25}}
 #map .rdot{fill:var(--rdot);pointer-events:none;transform-box:fill-box;transform-origin:center;animation:rdot .35s cubic-bezier(.3,1.6,.5,1) both}
 #map .rdot.end{stroke:var(--surface);stroke-width:2}
 @keyframes rdot{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
@@ -182,6 +199,11 @@ header.bh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space
 .where h1{margin:0;font-family:var(--display);font-weight:700;font-size:34px;line-height:1;text-wrap:balance}
 .clock{font-size:28px;font-weight:600;color:var(--muted)}
 .bctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:14px}
+.bfind{position:relative;flex:1 1 180px;min-width:0;max-width:340px}
+.bfind input{width:100%;font:inherit;font-size:14px;padding:6px 10px;border-radius:8px;border:1px solid var(--rule);background:var(--surface);color:var(--ink)}
+.bsugg{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;max-height:320px;overflow-y:auto;background:var(--surface);border:1px solid var(--rule);border-radius:8px;box-shadow:0 10px 24px rgba(20,33,43,.25)}
+.bsrow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;padding:9px 12px;border:0;border-top:1px solid var(--rule);background:transparent;color:var(--ink);font:inherit;font-size:14px;text-align:left;cursor:pointer}
+.bsrow:first-child{border-top:0}.bsrow small{color:var(--muted);font-size:12px;white-space:nowrap}.bsrow.direct small{color:var(--ok, #2fae6b)}
 .next{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:12px 14px;border-radius:10px;background:var(--ok-bg)}
 .next .k{font-size:13px;color:var(--ok);font-weight:700}
 .next .v{font-family:var(--display);font-size:24px;font-weight:600}
@@ -209,6 +231,30 @@ header.bh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space
 .dest{font-weight:700}
 .late{color:var(--late);font-size:13px;font-weight:700}
 .faretype{margin:2px 0 8px}.faretype button{flex:1;font-size:12px;padding:6px 3px;white-space:nowrap}
+.snz{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);cursor:pointer}.snz input{width:20px;height:20px;accent-color:var(--ink)}
+.page{overflow-x:hidden;overscroll-behavior-y:contain}.rwrap,.wrap{min-width:0;width:100%}#routeHost>*{min-width:0;max-width:100%}
+.ptr{flex:none;height:0;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;color:var(--muted);font-size:13px;transition:height .15s}
+.nexth{font-size:16px;font-weight:700;margin:6px 0 0}.nlist{display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:8px;overflow:hidden;background:var(--surface)}
+.nrow{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 12px;border:0;border-top:1px solid var(--rule);background:transparent;color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+.nrow:first-child{border-top:0}.nrow[aria-pressed="true"]{background:var(--no-bg);box-shadow:inset 4px 0 0 var(--ink)}
+.nrow .nt{font-family:var(--display);font-size:18px;font-weight:600}.nrow .nw{color:var(--muted);font-size:13px;min-width:52px}
+.nrow .nl{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:13px;color:var(--muted);min-width:0}.nrow .nd{font-size:13px;color:var(--muted);text-align:right}
+.nrow .badge{font-size:11px}
+.tag.exp{background:var(--late);color:#fff;font-weight:700}
+/* 역 시간표: 방향마다 첫차·막차 + 시|분 표(일본 역 시간표처럼, 행선지는 기호) */
+.ttgrp{border:1px solid var(--rule);border-radius:10px;background:var(--surface);overflow:hidden}
+.ttgh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--rule)}
+.ttgh b{font-size:16px}.ttgh small{color:var(--muted);font-size:12.5px;width:100%}
+.ttfl{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--rule)}
+.ttfl div{padding:8px 12px;font-size:13px;color:var(--muted)}.ttfl div+div{border-left:1px solid var(--rule)}
+.ttfl b{display:block;font-family:var(--display);font-size:24px;color:var(--ink);line-height:1.1}
+.tth{display:grid;grid-template-columns:44px minmax(0,1fr);border-top:1px solid var(--rule)}
+.tth:first-of-type{border-top:0}
+.tth .h{font-family:var(--display);font-weight:700;font-size:18px;text-align:center;padding:5px 0;background:var(--no-bg);border-right:1px solid var(--rule)}
+.tth .m{display:flex;flex-wrap:wrap;gap:2px 12px;padding:6px 10px;font-family:var(--display);font-size:18px;align-items:baseline}
+.tth .m sup{font-family:var(--body);font-size:10px;color:var(--accent);margin-left:1px}
+.tth.now .h{background:var(--accent);color:#fff}
+.ttleg{font-size:12.5px;color:var(--muted);padding:8px 12px;border-top:1px solid var(--rule)}
 .farenote{color:var(--muted);font-size:13px;margin:-6px 0 4px}
 .sample.live{border-style:solid;border-color:var(--ok);background:var(--ok-bg);color:var(--ink)}
 .sample.live b{color:var(--ok)}
@@ -301,7 +347,7 @@ header.bh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space
 .aitem p{margin:2px 0 0;font-size:14px;color:var(--muted)}
 .aitem .tag{font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--late);color:#fff}
 .aitem .tag.new{background:var(--accent)}
-.acard footer{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px 14px;border-top:1px solid var(--rule)}
+.acard footer{display:flex;gap:8px;justify-content:space-between;align-items:center;padding:10px 16px 14px;border-top:1px solid var(--rule)}
 .acard footer button{border:0;border-radius:999px;padding:9px 18px;font-size:15px;font-weight:700;cursor:pointer;background:var(--ink);color:var(--bg)}
 #rFav[aria-pressed="true"]{color:var(--accent)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -358,7 +404,7 @@ header.bh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space
   <div class="acard">
     <header><h2 id="aTitle">⚠ 운행 변경 안내</h2><button class="iconbtn" id="aX" aria-label="닫기">×</button></header>
     <div class="alist" id="aList"></div>
-    <footer><button id="aOk">확인</button></footer>
+    <footer><label class="snz"><input type="checkbox" id="aSnooze"><span>오늘은 그만 보기</span></label><button id="aOk">확인</button></footer>
   </div>
 </section>
 
@@ -369,11 +415,20 @@ header.bh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space
     <div class="shead">
       <div class="linechips" id="lineChips"></div>
       <button class="nearbtn" id="shNear" type="button">📍 주변정보</button>
+      <button class="nearbtn" id="shTT" type="button">🕒 시간표</button>
       <span class="tag yes" id="shMode"></span>
       <button class="iconbtn" id="shClose" aria-label="닫기">✕</button>
     </div>
   </div>
   <div class="sbody" id="sbody"></div>
+</section>
+
+<!-- ===== 역 시간표 (하루 전체 출발, 첫차·막차) ===== -->
+<section class="page" id="ttview" hidden>
+  <div class="wrap">
+    <button class="back" id="ttBack">← 노선도</button>
+    <div id="ttHost"></div>
+  </div>
 </section>
 
 <!-- ===== 역 보드 (상세) ===== -->
@@ -405,7 +460,7 @@ header.bh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space
 // 0) 공통
 // =====================================================================
 const $ = id => document.getElementById(id);
-const LINE_COLOR = {T1:'var(--t1)',T2:'var(--t2)',T3:'var(--t3)',T4:'var(--t4)',T5:'var(--t5)',T6:'var(--t6)',T7:'var(--t7)',T8:'var(--t8)',T9:'var(--t9)',M1:'var(--m1)'};
+const LINE_COLOR = {T1:'var(--t1)',T2:'var(--t2)',T3:'var(--t3)',T4:'var(--t4)',T5:'var(--t5)',T6:'var(--t6)',T7:'var(--t7)',T8:'var(--t8)',T9:'var(--t9)',M1:'var(--m1)',BMT:'var(--bmt)',CCN:'var(--ccn)',SCO:'var(--sco)',SHL:'var(--shl)',HUN:'var(--hun)'};
 const fmt = new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Sydney',hourCycle:'h23',weekday:'short',
   year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
 function sydneyNow(){
@@ -417,7 +472,7 @@ function hash(s){ let h=2166136261; for(const c of s){ h^=c.charCodeAt(0); h=Mat
 function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } }
 // ===== 언어: 설명 문구만 한국어(기본)·영어·중국어. 역 이름·노선 번호는 언제나 영어 그대로 =====
 // 사전: 한국어 문장 → [영어, 중국어]. 사전에 없는 말(역 이름 등)은 그대로 둔다. {n} 같은 자리는 값으로 채운다.
-const L10N = {"출발":["Depart","出发","Bertolak","புறப்படு","出発"],"도착":["Arrive","到达","Tiba","சேருமிடம்","到着"],"상세":["Details","详情","Butiran","விவரங்கள்","詳細"],"메트로":["Metro","地铁","Metro","மெட்ரோ","メトロ"],"{n}분":["{n} min","{n}分","{n} min","{n} நிமி","{n}分"],"분":["min","分","min","நிமி","分"],"환승 {n}회":["{n} transfer(s)","换乘{n}次","{n} pertukaran","{n} மாற்றம்","乗換{n}回"],"환승 없음":["No transfer","无需换乘","Tiada pertukaran","மாற்றம் இல்லை","乗換なし"],"출발·도착을 지웠어요.":["Cleared origin and destination.","已清除出发和到达。","Stesen asal dan destinasi dikosongkan.","புறப்படும் மற்றும் சேருமிட நிலையங்கள் அழிக்கப்பட்டன.","出発駅と到着駅を消去しました。"],"출발역과 같은 역이에요. 다른 역을 골라 주세요.":["Same as the origin. Pick another station.","与出发站相同，请选择其他车站。","Sama dengan stesen asal. Sila pilih stesen lain.","புறப்படும் நிலையமே இது. வேறு நிலையத்தைத் தேர்ந்தெடுக்கவும்.","出発駅と同じです。別の駅を選んでください。"],"출발역을 노선도에서 누르거나 아래 목록에서 골라 주세요.":["Tap the origin on the map or pick it from the list below.","请在线路图上点击出发站，或在下方列表中选择。","Ketik stesen asal pada peta atau pilih dari senarai di bawah.","வரைபடத்தில் புறப்படும் நிலையத்தைத் தட்டவும் அல்லது கீழே உள்ள பட்டியலில் தேர்ந்தெடுக்கவும்.","路線図で出発駅をタップするか、下のリストから選んでください。"],"{l} 노선":["{l} line","{l}线","Laluan {l}","{l} பாதை","{l}線"],"출발역":["From","出发站","Dari","புறப்படும் நிலையம்","出発駅"],"도착역":["To","到达站","Ke","சேருமிடம்","到着駅"],"역 정보":["Station","车站信息","Stesen","நிலையம்","駅情報"],"지금 열차 없음":["No trains now","暂无列车","Tiada tren sekarang","இப்போது ரயில் இல்லை","現在列車なし"],"{d}행":["to {d}","开往{d}","ke {d}","{d} செல்லும்","{d}行き"],"곧 도착":["Arriving","即将到达","Tiba","வருகிறது","まもなく到着"],"↗ 여기서 출발":["↗ Depart here","↗ 从这里出发","↗ Bertolak dari sini","↗ இங்கிருந்து புறப்படு","↗ ここから出発"],"↙ 여기로 도착":["↙ Arrive here","↙ 到这里","↙ Tiba di sini","↙ இங்கே சேரு","↙ ここに到着"],"도착역 고르기":["Choose destination","选择到达站","Pilih destinasi","சேருமிடத்தைத் தேர்வுசெய்","到着駅を選ぶ"],"고르기":["Choose","选择","Pilih","தேர்வுசெய்","選ぶ"],"또는 노선도에서 역을 눌러 [도착]":["or tap a station on the map → [Arrive]","或在线路图上点击车站 → [到达]","atau ketik stesen pada peta → [Tiba]","அல்லது வரைபடத்தில் நிலையத்தைத் தட்டவும் → [சேருமிடம்]","または路線図で駅をタップ → [到着]"],"출발역 고르기":["Choose origin","选择出发站","Pilih stesen asal","புறப்படும் நிலையத்தைத் தேர்வுசெய்","出発駅を選ぶ"],"▲ 위로 밀면 이 역의 전체 출발 정보가 나와요":["▲ Swipe up for all departures from this station","▲ 上滑查看本站全部发车信息","▲ Leret ke atas untuk semua perlepasan dari stesen ini","▲ இந்த நிலையத்தின் அனைத்து புறப்பாடுகளுக்கும் மேலே இழுக்கவும்","▲ 上にスワイプすると、この駅の全出発情報が表示されます"],"견본 데이터":["Sample data","示例数据","Data contoh","மாதிரி தரவு","サンプルデータ"],"시각은 가짜예요. 교통국 키를 받으면 진짜 시각으로 바뀝니다.":["Times are not real. They will become live once the TfNSW key is added.","时间为虚构，接入交通局密钥后将显示真实时间。","Masa bukan sebenar. Ia akan menjadi masa nyata selepas kunci TfNSW ditambah.","நேரங்கள் உண்மையானவை அல்ல. TfNSW சாவி சேர்க்கப்பட்டதும் நேரடி நேரங்களாக மாறும்.","時刻は架空です。TfNSWのキーを入れると実際の時刻になります。"],"{d} 안 감":["Not to {d}","不去{d}","Tidak ke {d}","{d} செல்லாது","{d}には行きません"],"다음 {s}":["Next {s}","下一站 {s}","Seterusnya {s}","அடுத்து {s}","次は {s}"],"+{n}분 지연":["+{n} min late","晚点{n}分","Lewat {n} min","{n} நிமி தாமதம்","{n}分遅れ"],"가장 빨리 도착":["Fastest arrival","最快到达","Tiba paling cepat","விரைவான வருகை","最速到着"],"{t} 출발":["dep {t}","{t} 出发","bertolak {t}","{t} புறப்பாடு","{t} 発"],"… 중간 역 생략":["… stops omitted","… 省略中间车站","… stesen di antara disembunyikan","… இடைநிலையங்கள் தவிர்க்கப்பட்டன","… 途中駅省略"],"이 열차는 {d}에 서지 않아요.":["This train does not stop at {d}.","本列车不停靠{d}。","Tren ini tidak berhenti di {d}.","இந்த ரயில் {d} இல் நிற்காது.","この列車は{d}に停まりません。"],"가장 빨리 가는 열차는 <b>{a}</b> 출발 {l}, <b>{b}</b> 도착이에요.":["Fastest option: {l} departing <b>{a}</b>, arriving <b>{b}</b>.","最快的是 <b>{a}</b> 出发的 {l}，<b>{b}</b> 到达。","Pilihan terpantas: {l} bertolak <b>{a}</b>, tiba <b>{b}</b>.","விரைவான தேர்வு: {l} <b>{a}</b> புறப்பாடு, <b>{b}</b> வருகை.","最速は <b>{a}</b> 発の {l}、<b>{b}</b> 着です。"],"각 역 도착 예정 시각":["Expected arrival at each stop","各站预计到达时间","Jangkaan ketibaan di setiap stesen","ஒவ்வொரு நிலையத்திலும் எதிர்பார்க்கப்படும் வருகை","各駅の到着予定時刻"],"{n}분 늦어진 시각(취소선은 원래 시각)":["{n} min late (struck-through = scheduled)","晚点{n}分（划线为原定时间）","Lewat {n} min (garis potong = jadual asal)","{n} நிமி தாமதம் (அடிக்கப்பட்டது = திட்டமிட்ட நேரம்)","{n}分遅れ（取り消し線は本来の時刻）"],"정시":["On time","准点","Tepat masa","சரியான நேரம்","定刻"],"역 출발 정보 · 시드니 시각":["Departures · Sydney time","发车信息 · 悉尼时间","Perlepasan · Waktu Sydney","புறப்பாடுகள் · சிட்னி நேரம்","出発案内・シドニー時間"],"실제 시간표·실시간 정보가 아니에요. 교통국 키를 받으면 진짜 시각으로 바뀝니다.":["Not the real timetable or live data. Real times will appear once the TfNSW key is added.","并非真实时刻表或实时信息，接入交通局密钥后将显示真实时间。","Bukan jadual sebenar atau data masa nyata. Masa sebenar akan dipaparkan selepas kunci TfNSW ditambah.","இது உண்மையான கால அட்டவணையோ நேரடித் தரவோ அல்ல. TfNSW சாவி சேர்க்கப்பட்டதும் உண்மையான நேரங்கள் தோன்றும்.","実際の時刻表やリアルタイム情報ではありません。TfNSWのキーを入れると実際の時刻になります。"],"고르지 않음":["None","不选","Tiada","இல்லை","選ばない"],"{d} 가는 열차만":["Only trains to {d}","仅显示开往{d}的列车","Hanya tren ke {d}","{d} செல்லும் ரயில்கள் மட்டும்","{d}方面の列車のみ"],"{d} 가장 빨리":["Fastest to {d}","最快到{d}","Paling cepat ke {d}","{d} க்கு விரைவானது","{d}へ最速"],"{a} 출발 → {b} 도착":["dep {a} → arr {b}","{a} 出发 → {b} 到达","bertolak {a} → tiba {b}","{a} புறப்பாடு → {b} வருகை","{a} 発 → {b} 着"],"{n}분 후":["in {n} min","{n}分后","dalam {n} min","{n} நிமிடத்தில்","{n}分後"],"지금 이 역에 서는 열차가 없어요(견본 시간표 기준).":["No trains stop here right now (sample timetable).","目前没有列车停靠本站（示例时刻表）。","Tiada tren berhenti di sini sekarang (jadual contoh).","இப்போது இங்கே எந்த ரயிலும் நிற்கவில்லை (மாதிரி கால அட்டவணை).","現在この駅に停まる列車はありません（サンプル時刻表）。"],"도착역 목록에는 갈아타지 않고 갈 수 있는 역만 나와요. 갈아타야 하면 노선도에서 [출발] → [도착]으로 경로를 찾으세요.":["The destination list shows only stations reachable without changing trains. For trips with a transfer, use [Depart] → [Arrive] on the map.","到达站列表只显示无需换乘即可到达的车站。需要换乘时，请在线路图上用 [出发] → [到达] 查询路线。","Senarai destinasi hanya menunjukkan stesen yang boleh dicapai tanpa menukar tren. Untuk perjalanan dengan pertukaran, gunakan [Bertolak] → [Tiba] pada peta.","சேருமிடப் பட்டியலில் ரயில் மாறாமல் செல்லக்கூடிய நிலையங்கள் மட்டுமே உள்ளன. மாற்றம் தேவைப்பட்டால் வரைபடத்தில் [புறப்படு] → [சேருமிடம்] பயன்படுத்தவும்.","到着駅リストには乗り換えなしで行ける駅だけが表示されます。乗り換えが必要な場合は、路線図で [出発] → [到着] を使ってください。"],"지금":["Now","现在","Sekarang","இப்போது","今"],"오늘":["Today","今天","Hari ini","இன்று","今日"],"내일":["Tomorrow","明天","Esok","நாளை","明日"],"모레":["In 2 days","后天","Lusa","நாளை மறுநாள்","明後日"],"출발 날짜":["Departure day","出发日期","Hari bertolak","புறப்படும் நாள்","出発日"],"출발 시각":["Departure time","出发时间","Masa bertolak","புறப்படும் நேரம்","出発時刻"],"{w}요일 기준":["{w} timetable","按{w}时刻","Jadual {w}","{w} கால அட்டவணை","{w}ダイヤ"],"운행 변경 {n}":["Service changes {n}","运营变更 {n}","Perubahan perkhidmatan {n}","சேவை மாற்றங்கள் {n}","運行変更 {n}"],"T8 공항선: Central ↔ Revesby 열차 없음":["T8 Airport Line: no trains Central ↔ Revesby","T8 机场线：Central ↔ Revesby 停运","Laluan Lapangan Terbang T8: tiada tren Central ↔ Revesby","T8 விமான நிலையப் பாதை: Central ↔ Revesby ரயில் இல்லை","T8空港線：Central ↔ Revesby 運休"],"토 {a} 04:00 ~ 일 {b} 막차":["Sat {a} 04:00 – Sun {b} last train","周六 {a} 04:00 – 周日 {b} 末班车","Sabtu {a} 04:00 – Ahad {b} tren terakhir","சனி {a} 04:00 – ஞாயிறு {b} கடைசி ரயில்","土 {a} 04:00 〜 日 {b} 終電"],"공항 경유 구간(Green Square·Mascot·공항역) 운행 없음. 대체 버스가 다녀요. 평소보다 30분 이상 더 걸릴 수 있어요.":["No trains via the airport (Green Square, Mascot, airport stations). Replacement buses run. Allow 30+ extra minutes.","经机场区段（Green Square、Mascot、机场站）停运，有替代巴士。可能比平时多花30分钟以上。","Tiada tren melalui lapangan terbang (Green Square, Mascot, stesen lapangan terbang). Bas gantian disediakan. Peruntukkan 30 minit tambahan atau lebih.","விமான நிலைய வழியாக ரயில் இல்லை (Green Square, Mascot, விமான நிலைய நிலையங்கள்). மாற்றுப் பேருந்துகள் இயங்கும். 30 நிமிடத்துக்கு மேல் கூடுதலாக ஆகலாம்.","空港経由区間（Green Square・Mascot・空港駅）は運休。代行バスが運行します。普段より30分以上余分にかかることがあります。"],"T2·T3: Lidcombe ↔ Central 일부 열차 없음":["T2/T3: some trains cancelled Lidcombe ↔ Central","T2/T3：Lidcombe ↔ Central 部分列车停运","T2/T3: sesetengah tren dibatalkan Lidcombe ↔ Central","T2/T3: Lidcombe ↔ Central சில ரயில்கள் ரத்து","T2/T3：Lidcombe ↔ Central 一部運休"],"토 {a} 종일":["All day Sat {a}","周六 {a} 全天","Sepanjang hari Sabtu {a}","சனி {a} முழு நாள்","土 {a} 終日"],"Strathfield에서 T1·T9로 갈아타세요. Inner West 역은 대체 버스.":["Change to T1/T9 at Strathfield. Replacement buses for Inner West stations.","请在 Strathfield 换乘 T1/T9。Inner West 各站有替代巴士。","Tukar ke T1/T9 di Strathfield. Bas gantian untuk stesen Inner West.","Strathfield இல் T1/T9 க்கு மாறவும். Inner West நிலையங்களுக்கு மாற்றுப் பேருந்துகள்.","StrathfieldでT1/T9に乗り換えてください。Inner West各駅は代行バス。"],"메트로 M1: Sydenham ↔ Bankstown 운행 없음":["Metro M1: no service Sydenham ↔ Bankstown","地铁 M1：Sydenham ↔ Bankstown 停运","Metro M1: tiada perkhidmatan Sydenham ↔ Bankstown","மெட்ரோ M1: Sydenham ↔ Bankstown சேவை இல்லை","メトロM1：Sydenham ↔ Bankstown 運休"],"일 {b} 종일":["All day Sun {b}","周日 {b} 全天","Sepanjang hari Ahad {b}","ஞாயிறு {b} முழு நாள்","日 {b} 終日"],"시험 운행 작업. 대체 버스가 다녀요.":["Testing work. Replacement buses run.","测试运行作业，有替代巴士。","Kerja ujian. Bas gantian disediakan.","சோதனைப் பணி. மாற்றுப் பேருந்துகள் இயங்கும்.","試運転作業。代行バスが運行します。"],"내 경로":["My route","我的路线","Laluan saya","என் வழி","マイルート"],"새 안내":["New","新","Baharu","புதியது","新着"],"지금 알려진 운행 변경이 없어요.":["No known service changes right now.","目前没有已知的运营变更。","Tiada perubahan perkhidmatan yang diketahui sekarang.","இப்போது அறியப்பட்ட சேவை மாற்றங்கள் இல்லை.","現在、運行変更の情報はありません。"],"견본 안내예요. 시드니에서 교통국 키를 받으면 진짜 공사·운행 중단 정보로 바뀌어요.":["Sample notices. Real trackwork and disruption info will appear once the TfNSW key is added.","这是示例通知，接入交通局密钥后将显示真实的施工和停运信息。","Notis contoh. Maklumat kerja landasan dan gangguan sebenar akan dipaparkan selepas kunci TfNSW ditambah.","மாதிரி அறிவிப்புகள். TfNSW சாவி சேர்க்கப்பட்டதும் உண்மையான தண்டவாளப் பணி, தடங்கல் தகவல் தோன்றும்.","サンプルのお知らせです。TfNSWのキーを入れると実際の工事・運休情報になります。"],"{n}: 즐겨찾기 역에서 뺐어요.":["{n}: removed from favourite stations.","{n}：已从收藏车站移除。","{n}: dibuang daripada stesen kegemaran.","{n}: பிடித்த நிலையங்களில் இருந்து நீக்கப்பட்டது.","{n}：お気に入り駅から外しました。"],"{n}: 즐겨찾기 역에 넣었어요. 노선도 위쪽에 보여요.":["{n}: added to favourite stations. Shown at the top of the map.","{n}：已加入收藏车站，显示在线路图上方。","{n}: ditambah ke stesen kegemaran. Dipaparkan di bahagian atas peta.","{n}: பிடித்த நிலையங்களில் சேர்க்கப்பட்டது. வரைபடத்தின் மேலே தெரியும்.","{n}：お気に入り駅に追加しました。路線図の上に表示されます。"],"{s} 즐겨찾기":["Favourite {s}","收藏 {s}","Kegemaran {s}","{s} பிடித்தவை","{s} をお気に入り"],"\"{q}\"와 비슷한 역이 없어요. 영어 역 이름으로 쳐 보세요.":["No station like \"{q}\". Try the English station name.","没有与\"{q}\"相似的车站，请输入英文站名。","Tiada stesen seperti \"{q}\". Cuba nama stesen dalam bahasa Inggeris.","\"{q}\" போன்ற நிலையம் இல்லை. ஆங்கில நிலையப் பெயரை முயற்சிக்கவும்.","「{q}」に近い駅がありません。英語の駅名で入力してください。"],"즐겨찾기 역":["Favourite stations","收藏车站","Stesen kegemaran","பிடித்த நிலையங்கள்","お気に入り駅"],"즐겨찾기 경로":["Favourite routes","收藏路线","Laluan kegemaran","பிடித்த வழிகள்","お気に入りルート"],"최근 찾은 역":["Recent","最近搜索","Terkini","சமீபத்தியவை","最近の検索"],"영어로 역 이름을 쳐 보세요. 예: <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. ☆를 누르면 즐겨찾기 역이 돼요.":["Type an English station name, e.g. <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. Tap ☆ to save a favourite station.","请输入英文站名，例如 <b>cen</b> → Central，<b>sj</b> → St James，<b>airport</b>。点 ☆ 可收藏车站。","Taip nama stesen dalam bahasa Inggeris, cth. <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. Ketik ☆ untuk simpan stesen kegemaran.","ஆங்கில நிலையப் பெயரை உள்ளிடவும், எ.கா. <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. பிடித்த நிலையமாகச் சேமிக்க ☆ தட்டவும்.","英語の駅名を入力してください。例：<b>cen</b> → Central、<b>sj</b> → St James、<b>airport</b>。☆をタップするとお気に入り駅になります。"],"즐겨찾기에서 뺐어요.":["Removed from favourites.","已从收藏中移除。","Dibuang daripada kegemaran.","பிடித்தவையில் இருந்து நீக்கப்பட்டது.","お気に入りから外しました。"],"즐겨찾기에 넣었어요. 노선도 위쪽에서 바로 열 수 있어요.":["Added to favourites. Open it from the top of the map.","已收藏，可在线路图上方直接打开。","Ditambah ke kegemaran. Buka dari bahagian atas peta.","பிடித்தவையில் சேர்க்கப்பட்டது. வரைபடத்தின் மேலிருந்து திறக்கலாம்.","お気に入りに追加しました。路線図の上からすぐ開けます。"],"앞으로 3시간 안에 갈 수 있는 열차가 없어요(견본 시간표 기준).":["No trains in the next 3 hours (sample timetable).","未来3小时内没有可乘列车（示例时刻表）。","Tiada tren dalam 3 jam akan datang (jadual contoh).","அடுத்த 3 மணி நேரத்தில் ரயில் இல்லை (மாதிரி கால அட்டவணை).","今後3時間以内に乗れる列車はありません（サンプル時刻表）。"],"{n}개 역({m}분)":["{n} stops ({m} min)","{n}站（{m}分）","{n} stesen ({m} min)","{n} நிலையங்கள் ({m} நிமி)","{n}駅（{m}分）"],"하차":["Off","下车","Turun","இறங்கு","降車"],"여기서 갈아타기":["Change here","在此换乘","Tukar di sini","இங்கே மாறவும்","ここで乗換"],"환승 · 이동 {a}분 + 기다림 {b}분":["Transfer · walk {a} min + wait {b} min","换乘 · 步行{a}分 + 等候{b}分","Pertukaran · berjalan {a} min + tunggu {b} min","மாற்றம் · {a} நிமி நடை + {b} நிமி காத்திருப்பு","乗換・徒歩{a}分＋待ち{b}分"],"견본":["sample","示例","contoh","மாதிரி","サンプル"],"소요시간":["Travel time","所需时间","Masa perjalanan","பயண நேரம்","所要時間"],"{t} 이후 첫 열차":["First train after {t}","{t} 之后的首班车","Tren pertama selepas {t}","{t} க்குப் பின் முதல் ரயில்","{t} 以降の始発"],"곧 출발":["Leaving now","即将出发","Bertolak sekarang","இப்போது புறப்படுகிறது","まもなく出発"],"{n}분 뒤 출발":["Leaves in {n} min","{n}分后出发","Bertolak dalam {n} min","{n} நிமிடத்தில் புறப்படும்","{n}分後に出発"],"시각·환승 시간은 가짜예요. 요금(Opal)과 승강장 번호는 진짜 데이터를 연결한 뒤 넣을게요.":["Times and transfer times are not real. Opal fares and platform numbers will come with live data.","时间和换乘时间为虚构。Opal 票价和站台号将在接入真实数据后加入。","Masa dan masa pertukaran bukan sebenar. Tambang Opal dan nombor platform akan ditambah bersama data masa nyata.","நேரங்களும் மாற்ற நேரங்களும் உண்மையானவை அல்ல. Opal கட்டணமும் நடைமேடை எண்களும் நேரடித் தரவுடன் வரும்.","時刻と乗換時間は架空です。Opal運賃とホーム番号は実データ接続後に入れます。"],"메트로 · 모든 역 정차":["Metro · all stops","地铁 · 站站停","Metro · berhenti di semua stesen","மெட்ரோ · அனைத்து நிலையங்களிலும் நிற்கும்","メトロ・各駅停車"],"Richmond 지선":["Richmond branch","Richmond 支线","Cawangan Richmond","Richmond கிளை","Richmond支線"],"공항 경유":["via Airport","经机场","melalui Lapangan Terbang","விமான நிலையம் வழியாக","空港経由"],"Sydenham 경유":["via Sydenham","经 Sydenham","melalui Sydenham","Sydenham வழியாக","Sydenham経由"],"← 노선도":["← Map","← 线路图","← Peta","← வரைபடம்","← 路線図"],"⚠ 운행 변경 안내":["⚠ Service changes","⚠ 运营变更通知","⚠ Perubahan perkhidmatan","⚠ சேவை மாற்றங்கள்","⚠ 運行変更のお知らせ"],"⟲ 지우기":["⟲ Clear","⟲ 清除","⟲ Kosongkan","⟲ அழி","⟲ 消去"],"경로 보기":["View route","查看路线","Lihat laluan","வழியைப் பார்","ルートを見る"],"최단시간":["Fastest","最快","Terpantas","விரைவானது","最短時間"],"최소환승":["Fewest transfers","最少换乘","Pertukaran paling sedikit","குறைந்த மாற்றங்கள்","乗換最少"],"확인":["OK","确定","OK","சரி","OK"],"검색 결과":["Search results","搜索结果","Hasil carian","தேடல் முடிவுகள்","検索結果"],"검색어 지우기":["Clear search","清除搜索","Kosongkan carian","தேடலை அழி","検索語を消去"],"닫기":["Close","关闭","Tutup","மூடு","閉じる"],"시드니 기차·메트로 간략 노선도":["Simplified Sydney Trains & Metro map","悉尼火车·地铁简图","Peta ringkas Sydney Trains & Metro","சிட்னி ரயில் & மெட்ரோ எளிய வரைபடம்","シドニー電車・メトロ簡易路線図"],"역 이름 검색 (영어)":["Station search (English)","车站搜索（英文）","Cari stesen (bahasa Inggeris)","நிலையத் தேடல் (ஆங்கிலம்)","駅名検索（英語）"],"역 이름 검색 · 즐겨찾기":["Search stations · Favourites","搜索车站 · 收藏","Cari stesen · Kegemaran","நிலையங்களைத் தேடு · பிடித்தவை","駅名検索・お気に入り"],"이 경로 즐겨찾기":["Favourite this route","收藏此路线","Simpan laluan ini sebagai kegemaran","இந்த வழியைப் பிடித்தவையில் சேர்","このルートをお気に入り"],"처음 위치로":["Reset view","回到初始位置","Paparan asal","தொடக்கக் காட்சி","最初の表示に戻す"],"축소":["Zoom out","缩小","Zum keluar","சிறிதாக்கு","縮小"],"출발·도착 바꾸기":["Swap origin and destination","交换出发和到达","Tukar asal dan destinasi","புறப்படும் மற்றும் சேருமிடத்தை மாற்று","出発と到着を入れ替え"],"출발·도착 지우기":["Clear origin and destination","清除出发和到达","Kosongkan asal dan destinasi","புறப்படும் மற்றும் சேருமிடத்தை அழி","出発と到着を消去"],"확대":["Zoom in","放大","Zum masuk","பெரிதாக்கு","拡大"],"언어":["Language","语言","Bahasa","மொழி","言語"],"가장 빠른 경로가 환승도 가장 적어요.":["The fastest route also has the fewest transfers.","最快路线也是换乘最少的路线。","Laluan terpantas juga mempunyai pertukaran paling sedikit.","விரைவான வழியிலேயே குறைந்த மாற்றங்களும் உள்ளன.","最短時間のルートが乗換も最少です。"],"이 경로가 환승도 가장 적어요.":["This route also has the fewest transfers.","此路线也是换乘最少的。","Laluan ini juga mempunyai pertukaran paling sedikit.","இந்த வழியிலேயே குறைந்த மாற்றங்களும் உள்ளன.","このルートが乗換も最少です。"],"내리는 문 왼쪽":["Doors open on the left","左侧开门","Pintu dibuka di sebelah kiri","கதவுகள் இடப்பக்கம் திறக்கும்","左側のドアが開きます"],"내리는 문 오른쪽":["Doors open on the right","右侧开门","Pintu dibuka di sebelah kanan","கதவுகள் வலப்பக்கம் திறக்கும்","右側のドアが開きます"],"내리는 문 방향은 위키백과 역 정보의 승강장 모양으로 추정했어요(공식 자료 아님). 안내 방송을 따르세요.":["Door sides are estimated from platform types in Wikipedia station articles (not official data). Follow on-board announcements.","开门方向根据维基百科车站条目的站台类型推测（非官方资料），请以车内广播为准。","Arah pintu dianggarkan daripada jenis platform dalam artikel stesen Wikipedia (bukan data rasmi). Ikut pengumuman dalam tren.","கதவு திசை விக்கிப்பீடியா நிலையக் கட்டுரைகளில் உள்ள நடைமேடை வகையைக் கொண்டு மதிப்பிடப்பட்டது (அதிகாரப்பூர்வத் தரவு அல்ல). ரயிலில் வரும் அறிவிப்புகளைப் பின்பற்றவும்.","ドアの開く側はWikipediaの駅記事にあるホームの形から推定しています（公式データではありません）。車内放送に従ってください。"],"환승 · 걸어서 약 {a}분":["Transfer · about {a} min walk","换乘 · 步行约{a}分","Pertukaran · kira-kira {a} min berjalan","மாற்றம் · சுமார் {a} நிமி நடை","乗換・徒歩約{a}分"],"기다림 약 {b}분":["wait about {b} min","等候约{b}分","tunggu kira-kira {b} min","சுமார் {b} நிமி காத்திருப்பு","待ち約{b}分"],"경로 공유":["Share route","分享路线","Kongsi laluan","வழியைப் பகிர்","ルートを共有"],"Google 지도에서 보기":["Open in Google Maps","在谷歌地图中查看","Buka dalam Google Maps","Google Maps இல் திற","Googleマップで見る"],"경로를 복사했어요. 원하는 앱에 붙여 넣으세요.":["Route copied. Paste it into any app.","已复制路线，可粘贴到任意应用。","Laluan disalin. Tampal dalam mana-mana aplikasi.","வழி நகலெடுக்கப்பட்டது. எந்தச் செயலியிலும் ஒட்டலாம்.","ルートをコピーしました。好きなアプリに貼り付けてください。"],"주변정보":["Nearby","周边","Sekitar","அருகில்","周辺情報"],"가까운 역이 여러 개예요. 원하는 역을 눌러 주세요.":["Several stations are close together. Tap the one you want.","附近有多个车站，请点选您要的车站。","Beberapa stesen berdekatan. Ketik stesen yang anda mahu.","பல நிலையங்கள் அருகருகே உள்ளன. வேண்டிய நிலையத்தைத் தட்டவும்.","近くに駅がいくつかあります。目的の駅をタップしてください。"],"실시간":["Live","实时","Masa nyata","நேரலை","リアルタイム"],"교통국(TfNSW) 실시간 자료예요. 늦은 시간·승강장이 반영돼요.":["Live data from Transport for NSW, including delays and platforms.","来自新州交通局(TfNSW)的实时数据,含晚点和站台。","Data masa nyata daripada Transport for NSW, termasuk kelewatan dan platform.","Transport for NSW நேரலைத் தரவு, தாமதம் மற்றும் நடைமேடை உட்பட.","NSW州交通局(TfNSW)のリアルタイム情報です。遅れとホームを反映しています。"],"실시간 정보를 불러오는 중이거나 받지 못했어요. 지금은 견본 시각이에요.":["Loading live data (or it is unavailable). Showing sample times for now.","正在加载实时数据(或暂时无法获取),目前显示示例时间。","Sedang memuatkan data masa nyata (atau tidak tersedia). Masa contoh dipaparkan.","நேரலைத் தரவு ஏற்றப்படுகிறது (அல்லது கிடைக்கவில்லை). மாதிரி நேரங்கள் காட்டப்படுகின்றன.","リアルタイム情報を読み込み中(または取得できません)。今はサンプル時刻です。"],"취소":["Cancelled","取消","Dibatalkan","ரத்து","運休"],"{n}번 승강장":["Platform {n}","{n}号站台","Platform {n}","நடைமேடை {n}","{n}番線"],"{a}부터":["from {a}","{a}起","dari {a}","{a} முதல்","{a}から"],"교통국(TfNSW) 실시간 운행 안내예요. 내용은 영어 원문이에요.":["Live service notices from Transport for NSW (original English text).","来自新州交通局(TfNSW)的实时运营通知(英文原文)。","Notis perkhidmatan masa nyata daripada Transport for NSW (teks asal bahasa Inggeris).","Transport for NSW நேரலைச் சேவை அறிவிப்புகள் (ஆங்கில மூல உரை).","NSW州交通局(TfNSW)のリアルタイム運行情報です(英語原文)。"],"요금":["Fare","票价","Tambang","கட்டணம்","運賃"],"Opal 성인 · {k}km · {p}":["Opal adult · {k} km · {p}","Opal 成人 · {k} 公里 · {p}","Opal dewasa · {k} km · {p}","Opal வயதுவந்தோர் · {k} கிமீ · {p}","Opal大人 · {k}km · {p}"],"출퇴근 시간 요금":["peak fare","高峰票价","tambang waktu puncak","உச்ச நேரக் கட்டணம்","ピーク運賃"],"할인 시간 요금(30% 할인)":["off-peak fare (30% off)","非高峰票价(7折)","tambang luar puncak (diskaun 30%)","உச்சமற்ற நேரக் கட்டணம் (30% தள்ளுபடி)","オフピーク運賃(30%引き)"],"공항역 이용료 {f} 포함":["incl. airport station access fee {f}","含机场站使用费 {f}","termasuk caj akses stesen lapangan terbang {f}","விமான நிலைய அணுகல் கட்டணம் {f} உட்பட","空港駅使用料{f}込み"],"하루 최대 {c}":["daily cap {c}","每日上限 {c}","had harian {c}","நாள் உச்சவரம்பு {c}","1日上限{c}"],"참고":["Note","说明","Nota","குறிப்பு","注意"],"요금은 교통국 공식 Opal 요금표(성인)로 탄 시각의 출퇴근·할인 시간을 따져 계산했어요. 어린이·할인 카드는 약 절반이에요. 경로의 열차 시각은 아직 견본 시간표예요(역 출발 정보는 실시간).":["Fares use the official adult Opal fare table, peak or off-peak by your tap-on time. Child and concession fares are about half. Route train times still use a sample timetable (station departures are live).","票价按交通局官方成人 Opal 票价表,并根据上车时间判断高峰或非高峰计算。儿童和优惠卡约为一半。路线的列车时间仍为示例时刻表(车站发车信息为实时)。","Tambang menggunakan jadual tambang Opal dewasa rasmi, waktu puncak atau luar puncak mengikut masa tap masuk. Tambang kanak-kanak dan konsesi kira-kira separuh. Masa tren dalam laluan masih jadual contoh (perlepasan stesen adalah masa nyata).","கட்டணம் அதிகாரப்பூர்வ வயதுவந்தோர் Opal கட்டண அட்டவணையின்படி, ஏறும் நேரத்தின் உச்ச/உச்சமற்ற நேரத்தைக் கொண்டு கணக்கிடப்பட்டது. குழந்தை மற்றும் சலுகைக் கட்டணம் ஏறக்குறைய பாதி. வழியின் ரயில் நேரங்கள் இன்னும் மாதிரி கால அட்டவணை (நிலையப் புறப்பாடுகள் நேரலை).","運賃は交通局公式の大人Opal運賃表で、乗車時刻のピーク/オフピークにより計算しています。子ども・割引カードは約半額です。ルートの列車時刻はまだサンプル時刻表です(駅の出発情報はリアルタイム)。"],"교통국(TfNSW) 실시간 운행 안내를 자동 번역했어요. 정확한 내용은 영어 원문(교통국)을 확인하세요.":["Live Transport for NSW notices, machine-translated. Check the original English for exact details.","已自动翻译新州交通局(TfNSW)实时运营通知。准确内容请以英文原文为准。","Notis masa nyata Transport for NSW, diterjemah secara automatik. Semak teks asal bahasa Inggeris untuk butiran tepat.","Transport for NSW நேரலை அறிவிப்புகள், இயந்திர மொழிபெயர்ப்பு. சரியான விவரங்களுக்கு ஆங்கில மூலத்தைப் பார்க்கவும்.","NSW州交通局(TfNSW)のリアルタイム運行情報を自動翻訳しました。正確な内容は英語原文をご確認ください。"],"카드 종류":["Card type","卡类型","Jenis kad","அட்டை வகை","カード種類"],"성인":["Adult","成人","Dewasa","வயதுவந்தோர்","大人"],"어린이·청소년":["Child/Youth","儿童/青少年","Kanak-kanak/Belia","குழந்தை/இளைஞர்","子ども・青少年"],"할인(학생 등)":["Concession","优惠","Konsesi","சலுகை","割引(学生等)"],"골드(노인·연금)":["Gold Senior","金卡(长者)","Gold Warga Emas","கோல்ட் மூத்தோர்","ゴールド(高齢者)"],"Opal {c} · {k}km · {p}":["Opal {c} · {k} km · {p}","Opal {c} · {k} 公里 · {p}","Opal {c} · {k} km · {p}","Opal {c} · {k} கிமீ · {p}","Opal {c} · {k}km · {p}"],"하루 $2.50 상한":["$2.50 daily cap","每日上限 $2.50","had harian $2.50","நாள் உச்சவரம்பு $2.50","1日上限$2.50"],"요금은 교통국 공식 Opal 요금표로 탄 시각의 출퇴근·할인 시간을 따져 계산했어요.":["Fares use the official Opal fare tables, peak or off-peak by your tap-on time.","票价按交通局官方 Opal 票价表,并根据上车时间判断高峰或非高峰计算。","Tambang menggunakan jadual tambang Opal rasmi, waktu puncak atau luar puncak mengikut masa tap masuk.","கட்டணம் அதிகாரப்பூர்வ Opal கட்டண அட்டவணையின்படி, ஏறும் நேரத்தின் உச்ச/உச்சமற்ற நேரத்தைக் கொண்டு கணக்கிடப்பட்டது.","運賃は交通局公式のOpal運賃表で、乗車時刻のピーク/オフピークにより計算しています。"],"열차·시각·승강장은 교통국 경로 찾기(공식 시간표 + 실시간 늦음)예요.":["Trains, times and platforms come from the Transport for NSW trip planner (official timetable + live delays).","列车、时间和站台来自新州交通局行程规划(官方时刻表 + 实时延误)。","Tren, masa dan platform daripada perancang perjalanan Transport for NSW (jadual rasmi + kelewatan masa nyata).","ரயில்கள், நேரங்கள், நடைமேடைகள் Transport for NSW பயணத் திட்டமிடலிலிருந்து (அதிகாரப்பூர்வ அட்டவணை + நேரலைத் தாமதம்).","列車・時刻・ホームは交通局の経路検索(公式時刻表+リアルタイム遅延)です。"],"실시간 경로를 받는 중이거나 받지 못해 견본 시간표로 보여 주고 있어요.":["Live route not loaded yet — showing a sample timetable for now.","实时路线尚未载入,暂时显示示例时刻表。","Laluan masa nyata belum dimuatkan — memaparkan jadual contoh buat masa ini.","நேரலை வழி இன்னும் ஏற்றப்படவில்லை — தற்போது மாதிரி அட்டவணை காட்டப்படுகிறது.","リアルタイム経路をまだ取得できていないため、サンプル時刻表を表示しています。"],"할인":["Concession","优惠","Konsesi","சலுகை","割引"],"골드":["Gold Senior","长者金卡","Gold","கோல்ட்","ゴールド"]};
+const L10N = {"출발":["Depart","出发","Bertolak","புறப்படு","出発"],"도착":["Arrive","到达","Tiba","சேருமிடம்","到着"],"상세":["Details","详情","Butiran","விவரங்கள்","詳細"],"메트로":["Metro","地铁","Metro","மெட்ரோ","メトロ"],"{n}분":["{n} min","{n}分","{n} min","{n} நிமி","{n}分"],"분":["min","分","min","நிமி","分"],"환승 {n}회":["{n} transfer(s)","换乘{n}次","{n} pertukaran","{n} மாற்றம்","乗換{n}回"],"환승 없음":["No transfer","无需换乘","Tiada pertukaran","மாற்றம் இல்லை","乗換なし"],"출발·도착을 지웠어요.":["Cleared origin and destination.","已清除出发和到达。","Stesen asal dan destinasi dikosongkan.","புறப்படும் மற்றும் சேருமிட நிலையங்கள் அழிக்கப்பட்டன.","出発駅と到着駅を消去しました。"],"출발역과 같은 역이에요. 다른 역을 골라 주세요.":["Same as the origin. Pick another station.","与出发站相同，请选择其他车站。","Sama dengan stesen asal. Sila pilih stesen lain.","புறப்படும் நிலையமே இது. வேறு நிலையத்தைத் தேர்ந்தெடுக்கவும்.","出発駅と同じです。別の駅を選んでください。"],"출발역을 노선도에서 누르거나 아래 목록에서 골라 주세요.":["Tap the origin on the map or pick it from the list below.","请在线路图上点击出发站，或在下方列表中选择。","Ketik stesen asal pada peta atau pilih dari senarai di bawah.","வரைபடத்தில் புறப்படும் நிலையத்தைத் தட்டவும் அல்லது கீழே உள்ள பட்டியலில் தேர்ந்தெடுக்கவும்.","路線図で出発駅をタップするか、下のリストから選んでください。"],"{l} 노선":["{l} line","{l}线","Laluan {l}","{l} பாதை","{l}線"],"출발역":["From","出发站","Dari","புறப்படும் நிலையம்","出発駅"],"도착역":["To","到达站","Ke","சேருமிடம்","到着駅"],"역 정보":["Station","车站信息","Stesen","நிலையம்","駅情報"],"지금 열차 없음":["No trains now","暂无列车","Tiada tren sekarang","இப்போது ரயில் இல்லை","現在列車なし"],"{d}행":["to {d}","开往{d}","ke {d}","{d} செல்லும்","{d}行き"],"곧 도착":["Arriving","即将到达","Tiba","வருகிறது","まもなく到着"],"↗ 여기서 출발":["↗ Depart here","↗ 从这里出发","↗ Bertolak dari sini","↗ இங்கிருந்து புறப்படு","↗ ここから出発"],"↙ 여기로 도착":["↙ Arrive here","↙ 到这里","↙ Tiba di sini","↙ இங்கே சேரு","↙ ここに到着"],"도착역 고르기":["Choose destination","选择到达站","Pilih destinasi","சேருமிடத்தைத் தேர்வுசெய்","到着駅を選ぶ"],"고르기":["Choose","选择","Pilih","தேர்வுசெய்","選ぶ"],"또는 노선도에서 역을 눌러 [도착]":["or tap a station on the map → [Arrive]","或在线路图上点击车站 → [到达]","atau ketik stesen pada peta → [Tiba]","அல்லது வரைபடத்தில் நிலையத்தைத் தட்டவும் → [சேருமிடம்]","または路線図で駅をタップ → [到着]"],"출발역 고르기":["Choose origin","选择出发站","Pilih stesen asal","புறப்படும் நிலையத்தைத் தேர்வுசெய்","出発駅を選ぶ"],"▲ 위로 밀면 이 역의 전체 출발 정보가 나와요":["▲ Swipe up for all departures from this station","▲ 上滑查看本站全部发车信息","▲ Leret ke atas untuk semua perlepasan dari stesen ini","▲ இந்த நிலையத்தின் அனைத்து புறப்பாடுகளுக்கும் மேலே இழுக்கவும்","▲ 上にスワイプすると、この駅の全出発情報が表示されます"],"견본 데이터":["Sample data","示例数据","Data contoh","மாதிரி தரவு","サンプルデータ"],"시각은 가짜예요. 교통국 키를 받으면 진짜 시각으로 바뀝니다.":["Times are not real. They will become live once the TfNSW key is added.","时间为虚构，接入交通局密钥后将显示真实时间。","Masa bukan sebenar. Ia akan menjadi masa nyata selepas kunci TfNSW ditambah.","நேரங்கள் உண்மையானவை அல்ல. TfNSW சாவி சேர்க்கப்பட்டதும் நேரடி நேரங்களாக மாறும்.","時刻は架空です。TfNSWのキーを入れると実際の時刻になります。"],"{d} 안 감":["Not to {d}","不去{d}","Tidak ke {d}","{d} செல்லாது","{d}には行きません"],"다음 {s}":["Next {s}","下一站 {s}","Seterusnya {s}","அடுத்து {s}","次は {s}"],"+{n}분 지연":["+{n} min late","晚点{n}分","Lewat {n} min","{n} நிமி தாமதம்","{n}分遅れ"],"가장 빨리 도착":["Fastest arrival","最快到达","Tiba paling cepat","விரைவான வருகை","最速到着"],"{t} 출발":["dep {t}","{t} 出发","bertolak {t}","{t} புறப்பாடு","{t} 発"],"… 중간 역 생략":["… stops omitted","… 省略中间车站","… stesen di antara disembunyikan","… இடைநிலையங்கள் தவிர்க்கப்பட்டன","… 途中駅省略"],"이 열차는 {d}에 서지 않아요.":["This train does not stop at {d}.","本列车不停靠{d}。","Tren ini tidak berhenti di {d}.","இந்த ரயில் {d} இல் நிற்காது.","この列車は{d}に停まりません。"],"가장 빨리 가는 열차는 <b>{a}</b> 출발 {l}, <b>{b}</b> 도착이에요.":["Fastest option: {l} departing <b>{a}</b>, arriving <b>{b}</b>.","最快的是 <b>{a}</b> 出发的 {l}，<b>{b}</b> 到达。","Pilihan terpantas: {l} bertolak <b>{a}</b>, tiba <b>{b}</b>.","விரைவான தேர்வு: {l} <b>{a}</b> புறப்பாடு, <b>{b}</b> வருகை.","最速は <b>{a}</b> 発の {l}、<b>{b}</b> 着です。"],"각 역 도착 예정 시각":["Expected arrival at each stop","各站预计到达时间","Jangkaan ketibaan di setiap stesen","ஒவ்வொரு நிலையத்திலும் எதிர்பார்க்கப்படும் வருகை","各駅の到着予定時刻"],"{n}분 늦어진 시각(취소선은 원래 시각)":["{n} min late (struck-through = scheduled)","晚点{n}分（划线为原定时间）","Lewat {n} min (garis potong = jadual asal)","{n} நிமி தாமதம் (அடிக்கப்பட்டது = திட்டமிட்ட நேரம்)","{n}分遅れ（取り消し線は本来の時刻）"],"정시":["On time","准点","Tepat masa","சரியான நேரம்","定刻"],"역 출발 정보 · 시드니 시각":["Departures · Sydney time","发车信息 · 悉尼时间","Perlepasan · Waktu Sydney","புறப்பாடுகள் · சிட்னி நேரம்","出発案内・シドニー時間"],"실제 시간표·실시간 정보가 아니에요. 교통국 키를 받으면 진짜 시각으로 바뀝니다.":["Not the real timetable or live data. Real times will appear once the TfNSW key is added.","并非真实时刻表或实时信息，接入交通局密钥后将显示真实时间。","Bukan jadual sebenar atau data masa nyata. Masa sebenar akan dipaparkan selepas kunci TfNSW ditambah.","இது உண்மையான கால அட்டவணையோ நேரடித் தரவோ அல்ல. TfNSW சாவி சேர்க்கப்பட்டதும் உண்மையான நேரங்கள் தோன்றும்.","実際の時刻表やリアルタイム情報ではありません。TfNSWのキーを入れると実際の時刻になります。"],"고르지 않음":["None","不选","Tiada","இல்லை","選ばない"],"{d} 가는 열차만":["Only trains to {d}","仅显示开往{d}的列车","Hanya tren ke {d}","{d} செல்லும் ரயில்கள் மட்டும்","{d}方面の列車のみ"],"{d} 가장 빨리":["Fastest to {d}","最快到{d}","Paling cepat ke {d}","{d} க்கு விரைவானது","{d}へ最速"],"{a} 출발 → {b} 도착":["dep {a} → arr {b}","{a} 出发 → {b} 到达","bertolak {a} → tiba {b}","{a} புறப்பாடு → {b} வருகை","{a} 発 → {b} 着"],"{n}분 후":["in {n} min","{n}分后","dalam {n} min","{n} நிமிடத்தில்","{n}分後"],"지금 이 역에 서는 열차가 없어요(견본 시간표 기준).":["No trains stop here right now (sample timetable).","目前没有列车停靠本站（示例时刻表）。","Tiada tren berhenti di sini sekarang (jadual contoh).","இப்போது இங்கே எந்த ரயிலும் நிற்கவில்லை (மாதிரி கால அட்டவணை).","現在この駅に停まる列車はありません（サンプル時刻表）。"],"도착역 목록에는 갈아타지 않고 갈 수 있는 역만 나와요. 갈아타야 하면 노선도에서 [출발] → [도착]으로 경로를 찾으세요.":["The destination list shows only stations reachable without changing trains. For trips with a transfer, use [Depart] → [Arrive] on the map.","到达站列表只显示无需换乘即可到达的车站。需要换乘时，请在线路图上用 [出发] → [到达] 查询路线。","Senarai destinasi hanya menunjukkan stesen yang boleh dicapai tanpa menukar tren. Untuk perjalanan dengan pertukaran, gunakan [Bertolak] → [Tiba] pada peta.","சேருமிடப் பட்டியலில் ரயில் மாறாமல் செல்லக்கூடிய நிலையங்கள் மட்டுமே உள்ளன. மாற்றம் தேவைப்பட்டால் வரைபடத்தில் [புறப்படு] → [சேருமிடம்] பயன்படுத்தவும்.","到着駅リストには乗り換えなしで行ける駅だけが表示されます。乗り換えが必要な場合は、路線図で [出発] → [到着] を使ってください。"],"지금":["Now","现在","Sekarang","இப்போது","今"],"오늘":["Today","今天","Hari ini","இன்று","今日"],"내일":["Tomorrow","明天","Esok","நாளை","明日"],"모레":["In 2 days","后天","Lusa","நாளை மறுநாள்","明後日"],"출발 날짜":["Departure day","出发日期","Hari bertolak","புறப்படும் நாள்","出発日"],"출발 시각":["Departure time","出发时间","Masa bertolak","புறப்படும் நேரம்","出発時刻"],"{w}요일 기준":["{w} timetable","按{w}时刻","Jadual {w}","{w} கால அட்டவணை","{w}ダイヤ"],"운행 변경 {n}":["Service changes {n}","运营变更 {n}","Perubahan perkhidmatan {n}","சேவை மாற்றங்கள் {n}","運行変更 {n}"],"T8 공항선: Central ↔ Revesby 열차 없음":["T8 Airport Line: no trains Central ↔ Revesby","T8 机场线：Central ↔ Revesby 停运","Laluan Lapangan Terbang T8: tiada tren Central ↔ Revesby","T8 விமான நிலையப் பாதை: Central ↔ Revesby ரயில் இல்லை","T8空港線：Central ↔ Revesby 運休"],"토 {a} 04:00 ~ 일 {b} 막차":["Sat {a} 04:00 – Sun {b} last train","周六 {a} 04:00 – 周日 {b} 末班车","Sabtu {a} 04:00 – Ahad {b} tren terakhir","சனி {a} 04:00 – ஞாயிறு {b} கடைசி ரயில்","土 {a} 04:00 〜 日 {b} 終電"],"공항 경유 구간(Green Square·Mascot·공항역) 운행 없음. 대체 버스가 다녀요. 평소보다 30분 이상 더 걸릴 수 있어요.":["No trains via the airport (Green Square, Mascot, airport stations). Replacement buses run. Allow 30+ extra minutes.","经机场区段（Green Square、Mascot、机场站）停运，有替代巴士。可能比平时多花30分钟以上。","Tiada tren melalui lapangan terbang (Green Square, Mascot, stesen lapangan terbang). Bas gantian disediakan. Peruntukkan 30 minit tambahan atau lebih.","விமான நிலைய வழியாக ரயில் இல்லை (Green Square, Mascot, விமான நிலைய நிலையங்கள்). மாற்றுப் பேருந்துகள் இயங்கும். 30 நிமிடத்துக்கு மேல் கூடுதலாக ஆகலாம்.","空港経由区間（Green Square・Mascot・空港駅）は運休。代行バスが運行します。普段より30分以上余分にかかることがあります。"],"T2·T3: Lidcombe ↔ Central 일부 열차 없음":["T2/T3: some trains cancelled Lidcombe ↔ Central","T2/T3：Lidcombe ↔ Central 部分列车停运","T2/T3: sesetengah tren dibatalkan Lidcombe ↔ Central","T2/T3: Lidcombe ↔ Central சில ரயில்கள் ரத்து","T2/T3：Lidcombe ↔ Central 一部運休"],"토 {a} 종일":["All day Sat {a}","周六 {a} 全天","Sepanjang hari Sabtu {a}","சனி {a} முழு நாள்","土 {a} 終日"],"Strathfield에서 T1·T9로 갈아타세요. Inner West 역은 대체 버스.":["Change to T1/T9 at Strathfield. Replacement buses for Inner West stations.","请在 Strathfield 换乘 T1/T9。Inner West 各站有替代巴士。","Tukar ke T1/T9 di Strathfield. Bas gantian untuk stesen Inner West.","Strathfield இல் T1/T9 க்கு மாறவும். Inner West நிலையங்களுக்கு மாற்றுப் பேருந்துகள்.","StrathfieldでT1/T9に乗り換えてください。Inner West各駅は代行バス。"],"메트로 M1: Sydenham ↔ Bankstown 운행 없음":["Metro M1: no service Sydenham ↔ Bankstown","地铁 M1：Sydenham ↔ Bankstown 停运","Metro M1: tiada perkhidmatan Sydenham ↔ Bankstown","மெட்ரோ M1: Sydenham ↔ Bankstown சேவை இல்லை","メトロM1：Sydenham ↔ Bankstown 運休"],"일 {b} 종일":["All day Sun {b}","周日 {b} 全天","Sepanjang hari Ahad {b}","ஞாயிறு {b} முழு நாள்","日 {b} 終日"],"시험 운행 작업. 대체 버스가 다녀요.":["Testing work. Replacement buses run.","测试运行作业，有替代巴士。","Kerja ujian. Bas gantian disediakan.","சோதனைப் பணி. மாற்றுப் பேருந்துகள் இயங்கும்.","試運転作業。代行バスが運行します。"],"내 경로":["My route","我的路线","Laluan saya","என் வழி","マイルート"],"새 안내":["New","新","Baharu","புதியது","新着"],"지금 알려진 운행 변경이 없어요.":["No known service changes right now.","目前没有已知的运营变更。","Tiada perubahan perkhidmatan yang diketahui sekarang.","இப்போது அறியப்பட்ட சேவை மாற்றங்கள் இல்லை.","現在、運行変更の情報はありません。"],"견본 안내예요. 시드니에서 교통국 키를 받으면 진짜 공사·운행 중단 정보로 바뀌어요.":["Sample notices. Real trackwork and disruption info will appear once the TfNSW key is added.","这是示例通知，接入交通局密钥后将显示真实的施工和停运信息。","Notis contoh. Maklumat kerja landasan dan gangguan sebenar akan dipaparkan selepas kunci TfNSW ditambah.","மாதிரி அறிவிப்புகள். TfNSW சாவி சேர்க்கப்பட்டதும் உண்மையான தண்டவாளப் பணி, தடங்கல் தகவல் தோன்றும்.","サンプルのお知らせです。TfNSWのキーを入れると実際の工事・運休情報になります。"],"{n}: 즐겨찾기 역에서 뺐어요.":["{n}: removed from favourite stations.","{n}：已从收藏车站移除。","{n}: dibuang daripada stesen kegemaran.","{n}: பிடித்த நிலையங்களில் இருந்து நீக்கப்பட்டது.","{n}：お気に入り駅から外しました。"],"{n}: 즐겨찾기 역에 넣었어요. 노선도 위쪽에 보여요.":["{n}: added to favourite stations. Shown at the top of the map.","{n}：已加入收藏车站，显示在线路图上方。","{n}: ditambah ke stesen kegemaran. Dipaparkan di bahagian atas peta.","{n}: பிடித்த நிலையங்களில் சேர்க்கப்பட்டது. வரைபடத்தின் மேலே தெரியும்.","{n}：お気に入り駅に追加しました。路線図の上に表示されます。"],"{s} 즐겨찾기":["Favourite {s}","收藏 {s}","Kegemaran {s}","{s} பிடித்தவை","{s} をお気に入り"],"\"{q}\"와 비슷한 역이 없어요. 영어 역 이름으로 쳐 보세요.":["No station like \"{q}\". Try the English station name.","没有与\"{q}\"相似的车站，请输入英文站名。","Tiada stesen seperti \"{q}\". Cuba nama stesen dalam bahasa Inggeris.","\"{q}\" போன்ற நிலையம் இல்லை. ஆங்கில நிலையப் பெயரை முயற்சிக்கவும்.","「{q}」に近い駅がありません。英語の駅名で入力してください。"],"즐겨찾기 역":["Favourite stations","收藏车站","Stesen kegemaran","பிடித்த நிலையங்கள்","お気に入り駅"],"즐겨찾기 경로":["Favourite routes","收藏路线","Laluan kegemaran","பிடித்த வழிகள்","お気に入りルート"],"최근 찾은 역":["Recent","最近搜索","Terkini","சமீபத்தியவை","最近の検索"],"영어로 역 이름을 쳐 보세요. 예: <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. ☆를 누르면 즐겨찾기 역이 돼요.":["Type an English station name, e.g. <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. Tap ☆ to save a favourite station.","请输入英文站名，例如 <b>cen</b> → Central，<b>sj</b> → St James，<b>airport</b>。点 ☆ 可收藏车站。","Taip nama stesen dalam bahasa Inggeris, cth. <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. Ketik ☆ untuk simpan stesen kegemaran.","ஆங்கில நிலையப் பெயரை உள்ளிடவும், எ.கா. <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. பிடித்த நிலையமாகச் சேமிக்க ☆ தட்டவும்.","英語の駅名を入力してください。例：<b>cen</b> → Central、<b>sj</b> → St James、<b>airport</b>。☆をタップするとお気に入り駅になります。"],"즐겨찾기에서 뺐어요.":["Removed from favourites.","已从收藏中移除。","Dibuang daripada kegemaran.","பிடித்தவையில் இருந்து நீக்கப்பட்டது.","お気に入りから外しました。"],"즐겨찾기에 넣었어요. 노선도 위쪽에서 바로 열 수 있어요.":["Added to favourites. Open it from the top of the map.","已收藏，可在线路图上方直接打开。","Ditambah ke kegemaran. Buka dari bahagian atas peta.","பிடித்தவையில் சேர்க்கப்பட்டது. வரைபடத்தின் மேலிருந்து திறக்கலாம்.","お気に入りに追加しました。路線図の上からすぐ開けます。"],"앞으로 3시간 안에 갈 수 있는 열차가 없어요(견본 시간표 기준).":["No trains in the next 3 hours (sample timetable).","未来3小时内没有可乘列车（示例时刻表）。","Tiada tren dalam 3 jam akan datang (jadual contoh).","அடுத்த 3 மணி நேரத்தில் ரயில் இல்லை (மாதிரி கால அட்டவணை).","今後3時間以内に乗れる列車はありません（サンプル時刻表）。"],"{n}개 역({m}분)":["{n} stops ({m} min)","{n}站（{m}分）","{n} stesen ({m} min)","{n} நிலையங்கள் ({m} நிமி)","{n}駅（{m}分）"],"하차":["Off","下车","Turun","இறங்கு","降車"],"여기서 갈아타기":["Change here","在此换乘","Tukar di sini","இங்கே மாறவும்","ここで乗換"],"환승 · 이동 {a}분 + 기다림 {b}분":["Transfer · walk {a} min + wait {b} min","换乘 · 步行{a}分 + 等候{b}分","Pertukaran · berjalan {a} min + tunggu {b} min","மாற்றம் · {a} நிமி நடை + {b} நிமி காத்திருப்பு","乗換・徒歩{a}分＋待ち{b}分"],"견본":["sample","示例","contoh","மாதிரி","サンプル"],"소요시간":["Travel time","所需时间","Masa perjalanan","பயண நேரம்","所要時間"],"{t} 이후 첫 열차":["First train after {t}","{t} 之后的首班车","Tren pertama selepas {t}","{t} க்குப் பின் முதல் ரயில்","{t} 以降の始発"],"곧 출발":["Leaving now","即将出发","Bertolak sekarang","இப்போது புறப்படுகிறது","まもなく出発"],"{n}분 뒤 출발":["Leaves in {n} min","{n}分后出发","Bertolak dalam {n} min","{n} நிமிடத்தில் புறப்படும்","{n}分後に出発"],"시각·환승 시간은 가짜예요. 요금(Opal)과 승강장 번호는 진짜 데이터를 연결한 뒤 넣을게요.":["Times and transfer times are not real. Opal fares and platform numbers will come with live data.","时间和换乘时间为虚构。Opal 票价和站台号将在接入真实数据后加入。","Masa dan masa pertukaran bukan sebenar. Tambang Opal dan nombor platform akan ditambah bersama data masa nyata.","நேரங்களும் மாற்ற நேரங்களும் உண்மையானவை அல்ல. Opal கட்டணமும் நடைமேடை எண்களும் நேரடித் தரவுடன் வரும்.","時刻と乗換時間は架空です。Opal運賃とホーム番号は実データ接続後に入れます。"],"메트로 · 모든 역 정차":["Metro · all stops","地铁 · 站站停","Metro · berhenti di semua stesen","மெட்ரோ · அனைத்து நிலையங்களிலும் நிற்கும்","メトロ・各駅停車"],"Richmond 지선":["Richmond branch","Richmond 支线","Cawangan Richmond","Richmond கிளை","Richmond支線"],"공항 경유":["via Airport","经机场","melalui Lapangan Terbang","விமான நிலையம் வழியாக","空港経由"],"Sydenham 경유":["via Sydenham","经 Sydenham","melalui Sydenham","Sydenham வழியாக","Sydenham経由"],"← 노선도":["← Map","← 线路图","← Peta","← வரைபடம்","← 路線図"],"⚠ 운행 변경 안내":["⚠ Service changes","⚠ 运营变更通知","⚠ Perubahan perkhidmatan","⚠ சேவை மாற்றங்கள்","⚠ 運行変更のお知らせ"],"⟲ 지우기":["⟲ Clear","⟲ 清除","⟲ Kosongkan","⟲ அழி","⟲ 消去"],"경로 보기":["View route","查看路线","Lihat laluan","வழியைப் பார்","ルートを見る"],"최단시간":["Fastest","最快","Terpantas","விரைவானது","最短時間"],"최소환승":["Fewest transfers","最少换乘","Pertukaran paling sedikit","குறைந்த மாற்றங்கள்","乗換最少"],"확인":["OK","确定","OK","சரி","OK"],"검색 결과":["Search results","搜索结果","Hasil carian","தேடல் முடிவுகள்","検索結果"],"검색어 지우기":["Clear search","清除搜索","Kosongkan carian","தேடலை அழி","検索語を消去"],"닫기":["Close","关闭","Tutup","மூடு","閉じる"],"시드니 기차·메트로 간략 노선도":["Simplified Sydney Trains & Metro map","悉尼火车·地铁简图","Peta ringkas Sydney Trains & Metro","சிட்னி ரயில் & மெட்ரோ எளிய வரைபடம்","シドニー電車・メトロ簡易路線図"],"역 이름 검색 (영어)":["Station search (English)","车站搜索（英文）","Cari stesen (bahasa Inggeris)","நிலையத் தேடல் (ஆங்கிலம்)","駅名検索（英語）"],"역 이름 검색 · 즐겨찾기":["Search stations · Favourites","搜索车站 · 收藏","Cari stesen · Kegemaran","நிலையங்களைத் தேடு · பிடித்தவை","駅名検索・お気に入り"],"이 경로 즐겨찾기":["Favourite this route","收藏此路线","Simpan laluan ini sebagai kegemaran","இந்த வழியைப் பிடித்தவையில் சேர்","このルートをお気に入り"],"처음 위치로":["Reset view","回到初始位置","Paparan asal","தொடக்கக் காட்சி","最初の表示に戻す"],"축소":["Zoom out","缩小","Zum keluar","சிறிதாக்கு","縮小"],"출발·도착 바꾸기":["Swap origin and destination","交换出发和到达","Tukar asal dan destinasi","புறப்படும் மற்றும் சேருமிடத்தை மாற்று","出発と到着を入れ替え"],"출발·도착 지우기":["Clear origin and destination","清除出发和到达","Kosongkan asal dan destinasi","புறப்படும் மற்றும் சேருமிடத்தை அழி","出発と到着を消去"],"확대":["Zoom in","放大","Zum masuk","பெரிதாக்கு","拡大"],"언어":["Language","语言","Bahasa","மொழி","言語"],"가장 빠른 경로가 환승도 가장 적어요.":["The fastest route also has the fewest transfers.","最快路线也是换乘最少的路线。","Laluan terpantas juga mempunyai pertukaran paling sedikit.","விரைவான வழியிலேயே குறைந்த மாற்றங்களும் உள்ளன.","最短時間のルートが乗換も最少です。"],"이 경로가 환승도 가장 적어요.":["This route also has the fewest transfers.","此路线也是换乘最少的。","Laluan ini juga mempunyai pertukaran paling sedikit.","இந்த வழியிலேயே குறைந்த மாற்றங்களும் உள்ளன.","このルートが乗換も最少です。"],"내리는 문 왼쪽":["Doors open on the left","左侧开门","Pintu dibuka di sebelah kiri","கதவுகள் இடப்பக்கம் திறக்கும்","左側のドアが開きます"],"내리는 문 오른쪽":["Doors open on the right","右侧开门","Pintu dibuka di sebelah kanan","கதவுகள் வலப்பக்கம் திறக்கும்","右側のドアが開きます"],"내리는 문 방향은 위키백과 역 정보의 승강장 모양으로 추정했어요(공식 자료 아님). 안내 방송을 따르세요.":["Door sides are estimated from platform types in Wikipedia station articles (not official data). Follow on-board announcements.","开门方向根据维基百科车站条目的站台类型推测（非官方资料），请以车内广播为准。","Arah pintu dianggarkan daripada jenis platform dalam artikel stesen Wikipedia (bukan data rasmi). Ikut pengumuman dalam tren.","கதவு திசை விக்கிப்பீடியா நிலையக் கட்டுரைகளில் உள்ள நடைமேடை வகையைக் கொண்டு மதிப்பிடப்பட்டது (அதிகாரப்பூர்வத் தரவு அல்ல). ரயிலில் வரும் அறிவிப்புகளைப் பின்பற்றவும்.","ドアの開く側はWikipediaの駅記事にあるホームの形から推定しています（公式データではありません）。車内放送に従ってください。"],"환승 · 걸어서 약 {a}분":["Transfer · about {a} min walk","换乘 · 步行约{a}分","Pertukaran · kira-kira {a} min berjalan","மாற்றம் · சுமார் {a} நிமி நடை","乗換・徒歩約{a}分"],"기다림 약 {b}분":["wait about {b} min","等候约{b}分","tunggu kira-kira {b} min","சுமார் {b} நிமி காத்திருப்பு","待ち約{b}分"],"경로 공유":["Share route","分享路线","Kongsi laluan","வழியைப் பகிர்","ルートを共有"],"Google 지도에서 보기":["Open in Google Maps","在谷歌地图中查看","Buka dalam Google Maps","Google Maps இல் திற","Googleマップで見る"],"경로를 복사했어요. 원하는 앱에 붙여 넣으세요.":["Route copied. Paste it into any app.","已复制路线，可粘贴到任意应用。","Laluan disalin. Tampal dalam mana-mana aplikasi.","வழி நகலெடுக்கப்பட்டது. எந்தச் செயலியிலும் ஒட்டலாம்.","ルートをコピーしました。好きなアプリに貼り付けてください。"],"주변정보":["Nearby","周边","Sekitar","அருகில்","周辺情報"],"가까운 역이 여러 개예요. 원하는 역을 눌러 주세요.":["Several stations are close together. Tap the one you want.","附近有多个车站，请点选您要的车站。","Beberapa stesen berdekatan. Ketik stesen yang anda mahu.","பல நிலையங்கள் அருகருகே உள்ளன. வேண்டிய நிலையத்தைத் தட்டவும்.","近くに駅がいくつかあります。目的の駅をタップしてください。"],"실시간":["Live","实时","Masa nyata","நேரலை","リアルタイム"],"교통국(TfNSW) 실시간 자료예요. 늦은 시간·승강장이 반영돼요.":["Live data from Transport for NSW, including delays and platforms.","来自新州交通局(TfNSW)的实时数据,含晚点和站台。","Data masa nyata daripada Transport for NSW, termasuk kelewatan dan platform.","Transport for NSW நேரலைத் தரவு, தாமதம் மற்றும் நடைமேடை உட்பட.","NSW州交通局(TfNSW)のリアルタイム情報です。遅れとホームを反映しています。"],"실시간 정보를 불러오는 중이거나 받지 못했어요. 지금은 견본 시각이에요.":["Loading live data (or it is unavailable). Showing sample times for now.","正在加载实时数据(或暂时无法获取),目前显示示例时间。","Sedang memuatkan data masa nyata (atau tidak tersedia). Masa contoh dipaparkan.","நேரலைத் தரவு ஏற்றப்படுகிறது (அல்லது கிடைக்கவில்லை). மாதிரி நேரங்கள் காட்டப்படுகின்றன.","リアルタイム情報を読み込み中(または取得できません)。今はサンプル時刻です。"],"취소":["Cancelled","取消","Dibatalkan","ரத்து","運休"],"{n}번 승강장":["Platform {n}","{n}号站台","Platform {n}","நடைமேடை {n}","{n}番線"],"{a}부터":["from {a}","{a}起","dari {a}","{a} முதல்","{a}から"],"교통국(TfNSW) 실시간 운행 안내예요. 내용은 영어 원문이에요.":["Live service notices from Transport for NSW (original English text).","来自新州交通局(TfNSW)的实时运营通知(英文原文)。","Notis perkhidmatan masa nyata daripada Transport for NSW (teks asal bahasa Inggeris).","Transport for NSW நேரலைச் சேவை அறிவிப்புகள் (ஆங்கில மூல உரை).","NSW州交通局(TfNSW)のリアルタイム運行情報です(英語原文)。"],"요금":["Fare","票价","Tambang","கட்டணம்","運賃"],"Opal 성인 · {k}km · {p}":["Opal adult · {k} km · {p}","Opal 成人 · {k} 公里 · {p}","Opal dewasa · {k} km · {p}","Opal வயதுவந்தோர் · {k} கிமீ · {p}","Opal大人 · {k}km · {p}"],"출퇴근 시간 요금":["peak fare","高峰票价","tambang waktu puncak","உச்ச நேரக் கட்டணம்","ピーク運賃"],"할인 시간 요금(30% 할인)":["off-peak fare (30% off)","非高峰票价(7折)","tambang luar puncak (diskaun 30%)","உச்சமற்ற நேரக் கட்டணம் (30% தள்ளுபடி)","オフピーク運賃(30%引き)"],"공항역 이용료 {f} 포함":["incl. airport station access fee {f}","含机场站使用费 {f}","termasuk caj akses stesen lapangan terbang {f}","விமான நிலைய அணுகல் கட்டணம் {f} உட்பட","空港駅使用料{f}込み"],"하루 최대 {c}":["daily cap {c}","每日上限 {c}","had harian {c}","நாள் உச்சவரம்பு {c}","1日上限{c}"],"참고":["Note","说明","Nota","குறிப்பு","注意"],"요금은 교통국 공식 Opal 요금표(성인)로 탄 시각의 출퇴근·할인 시간을 따져 계산했어요. 어린이·할인 카드는 약 절반이에요. 경로의 열차 시각은 아직 견본 시간표예요(역 출발 정보는 실시간).":["Fares use the official adult Opal fare table, peak or off-peak by your tap-on time. Child and concession fares are about half. Route train times still use a sample timetable (station departures are live).","票价按交通局官方成人 Opal 票价表,并根据上车时间判断高峰或非高峰计算。儿童和优惠卡约为一半。路线的列车时间仍为示例时刻表(车站发车信息为实时)。","Tambang menggunakan jadual tambang Opal dewasa rasmi, waktu puncak atau luar puncak mengikut masa tap masuk. Tambang kanak-kanak dan konsesi kira-kira separuh. Masa tren dalam laluan masih jadual contoh (perlepasan stesen adalah masa nyata).","கட்டணம் அதிகாரப்பூர்வ வயதுவந்தோர் Opal கட்டண அட்டவணையின்படி, ஏறும் நேரத்தின் உச்ச/உச்சமற்ற நேரத்தைக் கொண்டு கணக்கிடப்பட்டது. குழந்தை மற்றும் சலுகைக் கட்டணம் ஏறக்குறைய பாதி. வழியின் ரயில் நேரங்கள் இன்னும் மாதிரி கால அட்டவணை (நிலையப் புறப்பாடுகள் நேரலை).","運賃は交通局公式の大人Opal運賃表で、乗車時刻のピーク/オフピークにより計算しています。子ども・割引カードは約半額です。ルートの列車時刻はまだサンプル時刻表です(駅の出発情報はリアルタイム)。"],"교통국(TfNSW) 실시간 운행 안내를 자동 번역했어요. 정확한 내용은 영어 원문(교통국)을 확인하세요.":["Live Transport for NSW notices, machine-translated. Check the original English for exact details.","已自动翻译新州交通局(TfNSW)实时运营通知。准确内容请以英文原文为准。","Notis masa nyata Transport for NSW, diterjemah secara automatik. Semak teks asal bahasa Inggeris untuk butiran tepat.","Transport for NSW நேரலை அறிவிப்புகள், இயந்திர மொழிபெயர்ப்பு. சரியான விவரங்களுக்கு ஆங்கில மூலத்தைப் பார்க்கவும்.","NSW州交通局(TfNSW)のリアルタイム運行情報を自動翻訳しました。正確な内容は英語原文をご確認ください。"],"카드 종류":["Card type","卡类型","Jenis kad","அட்டை வகை","カード種類"],"성인":["Adult","成人","Dewasa","வயதுவந்தோர்","大人"],"어린이·청소년":["Child/Youth","儿童/青少年","Kanak-kanak/Belia","குழந்தை/இளைஞர்","子ども・青少年"],"할인(학생 등)":["Concession","优惠","Konsesi","சலுகை","割引(学生等)"],"골드(노인·연금)":["Gold Senior","金卡(长者)","Gold Warga Emas","கோல்ட் மூத்தோர்","ゴールド(高齢者)"],"Opal {c} · {k}km · {p}":["Opal {c} · {k} km · {p}","Opal {c} · {k} 公里 · {p}","Opal {c} · {k} km · {p}","Opal {c} · {k} கிமீ · {p}","Opal {c} · {k}km · {p}"],"하루 $2.50 상한":["$2.50 daily cap","每日上限 $2.50","had harian $2.50","நாள் உச்சவரம்பு $2.50","1日上限$2.50"],"요금은 교통국 공식 Opal 요금표로 탄 시각의 출퇴근·할인 시간을 따져 계산했어요.":["Fares use the official Opal fare tables, peak or off-peak by your tap-on time.","票价按交通局官方 Opal 票价表,并根据上车时间判断高峰或非高峰计算。","Tambang menggunakan jadual tambang Opal rasmi, waktu puncak atau luar puncak mengikut masa tap masuk.","கட்டணம் அதிகாரப்பூர்வ Opal கட்டண அட்டவணையின்படி, ஏறும் நேரத்தின் உச்ச/உச்சமற்ற நேரத்தைக் கொண்டு கணக்கிடப்பட்டது.","運賃は交通局公式のOpal運賃表で、乗車時刻のピーク/オフピークにより計算しています。"],"열차·시각·승강장은 교통국 경로 찾기(공식 시간표 + 실시간 늦음)예요.":["Trains, times and platforms come from the Transport for NSW trip planner (official timetable + live delays).","列车、时间和站台来自新州交通局行程规划(官方时刻表 + 实时延误)。","Tren, masa dan platform daripada perancang perjalanan Transport for NSW (jadual rasmi + kelewatan masa nyata).","ரயில்கள், நேரங்கள், நடைமேடைகள் Transport for NSW பயணத் திட்டமிடலிலிருந்து (அதிகாரப்பூர்வ அட்டவணை + நேரலைத் தாமதம்).","列車・時刻・ホームは交通局の経路検索(公式時刻表+リアルタイム遅延)です。"],"실시간 경로를 받는 중이거나 받지 못해 견본 시간표로 보여 주고 있어요.":["Live route not loaded yet — showing a sample timetable for now.","实时路线尚未载入,暂时显示示例时刻表。","Laluan masa nyata belum dimuatkan — memaparkan jadual contoh buat masa ini.","நேரலை வழி இன்னும் ஏற்றப்படவில்லை — தற்போது மாதிரி அட்டவணை காட்டப்படுகிறது.","リアルタイム経路をまだ取得できていないため、サンプル時刻表を表示しています。"],"할인":["Concession","优惠","Konsesi","சலுகை","割引"],"골드":["Gold Senior","长者金卡","Gold","கோல்ட்","ゴールド"],"오늘은 그만 보기":["Don't show again today","今天不再显示","Jangan tunjuk lagi hari ini","இன்று மீண்டும் காட்டாதே","今日はもう表示しない"],"다음 열차":["Next trains","下几班列车","Tren seterusnya","அடுத்த ரயில்கள்","次の列車"],"{n}분 뒤":["in {n} min","{n}分钟后","dalam {n} min","{n} நிமிடத்தில்","{n}分後"],"놓으면 새로고침":["Release to refresh","松开刷新","Lepas untuk muat semula","விடுவித்து புதுப்பி","離して更新"],"당겨서 새로고침":["Pull to refresh","下拉刷新","Tarik untuk muat semula","இழுத்து புதுப்பி","引いて更新"],"지금 시각 기준으로 열차 시간을 새로 받아요.":["Updating train times for now.","正在按当前时间更新列车时刻。","Mengemas kini masa tren untuk sekarang.","இப்போதைய நேரத்துக்கான ரயில் நேரங்களைப் புதுப்பிக்கிறது.","現在時刻で列車時刻を更新しています。"],"도착역 이름 쳐서 찾기":["Type destination","输入到达站","Taip destinasi","சேருமிடத்தைத் தட்டச்சு","到着駅を入力"],"갈아타지 않고 가요":["direct","直达","terus","நேரடி","乗換なし"],"갈아타야 해요 → 경로 보기":["change needed → route","需换乘 → 查看路线","perlu tukar → laluan","மாற வேண்டும் → வழி","乗換あり → 経路"],"내 위치로 진행 상황 보기":["Show my progress on this route","用我的位置显示行程进度","Tunjuk kemajuan saya","என் இருப்பிடத்துடன் முன்னேற்றம்","現在地で進み具合を表示"],"위치를 받지 못했어요.":["Could not get your location.","无法获取位置。","Tidak dapat lokasi anda.","இருப்பிடம் கிடைக்கவில்லை.","現在地を取得できません。"],"휴대폰·브라우저 설정에서 이 앱의 위치 권한을 켜 주세요.":["Turn on location permission for this app in your phone/browser settings.","请在手机或浏览器设置中开启此应用的位置权限。","Hidupkan kebenaran lokasi untuk apl ini dalam tetapan telefon/pelayar.","தொலைபேசி/உலாவி அமைப்பில் இந்த செயலிக்கு இருப்பிட அனுமதியை இயக்கவும்.","スマホ/ブラウザの設定でこのアプリの位置情報を許可してください。"],"지하나 건물 안이면 잠시 뒤 아래로 당겨 다시 받아 보세요.":["Underground or indoors? Pull down again in a moment.","若在地下或室内,请稍后下拉重试。","Di bawah tanah atau dalam bangunan? Tarik ke bawah semula sebentar lagi.","நிலத்தடி அல்லது உள்ளே இருந்தால் சிறிது நேரம் கழித்து மீண்டும் இழுக்கவும்.","地下や屋内なら、少ししてから下に引いて再取得してください。"],"위치 확인 중…":["Finding your location…","正在获取位置…","Mencari lokasi…","இருப்பிடம் தேடுகிறது…","現在地を確認中…"],"폰 위치 기준 · {s}초 전 · 정확도 ±{m}m":["Phone location · {s}s ago · ±{m} m","手机位置 · {s}秒前 · 精度±{m}米","Lokasi telefon · {s}s lalu · ±{m} m","தொலைபேசி இருப்பிடம் · {s} வி முன் · ±{m} மீ","端末の位置 · {s}秒前 · 精度±{m}m"],"경로에서 {k}km 떨어져 있어요 · 가장 가까운 역 {s}":["{k} km away from this route · nearest station {s}","距离路线 {k} 公里 · 最近车站 {s}","{k} km dari laluan · stesen terdekat {s}","இந்த வழியிலிருந்து {k} கிமீ · அருகிலுள்ள நிலையம் {s}","経路から{k}km · 最寄り駅 {s}"],"지금 {s}역":["Now at {s}","现在在 {s}","Kini di {s}","இப்போது {s}","現在 {s}駅"],"지금 {a} → {b} 사이 · {b}까지 약 {k}km":["Between {a} → {b} · about {k} km to {b}","在 {a} → {b} 之间 · 距 {b} 约 {k} 公里","Antara {a} → {b} · kira-kira {k} km ke {b}","{a} → {b} இடையே · {b} வரை சுமார் {k} கிமீ","{a} → {b} の間 · {b}まで約{k}km"],"{s}에 도착했어요":["Arrived at {s}","已到达 {s}","Tiba di {s}","{s} வந்தடைந்தீர்கள்","{s}に到着"],"{d}까지 {m}개 역 남음":["{m} stops to {d}","距 {d} 还有 {m} 站","{m} hentian ke {d}","{d} வரை {m} நிறுத்தங்கள்","{d}まであと{m}駅"],"지금 시각 기준으로 열차 시간과 내 위치를 새로 받아요.":["Updating train times and your location.","正在更新列车时刻和您的位置。","Mengemas kini masa tren dan lokasi anda.","ரயில் நேரங்களும் உங்கள் இருப்பிடமும் புதுப்பிக்கப்படுகின்றன.","列車時刻と現在地を更新しています。"],"Lithgow 너머(Rydal·Tarana·Bathurst)는 Opal 구간 밖이에요. NSW TrainLink 승차권을 미리 사야 해요.":["Beyond Lithgow (Rydal, Tarana, Bathurst) is outside the Opal network — buy an NSW TrainLink ticket in advance.","Lithgow 以外(Rydal、Tarana、Bathurst)不在 Opal 范围内,需提前购买 NSW TrainLink 车票。","Selepas Lithgow (Rydal, Tarana, Bathurst) di luar rangkaian Opal — beli tiket NSW TrainLink lebih awal.","Lithgow-க்கு அப்பால் (Rydal, Tarana, Bathurst) Opal வலையமைப்புக்கு வெளியே — NSW TrainLink டிக்கெட்டை முன்கூட்டியே வாங்கவும்.","Lithgowより先(Rydal・Tarana・Bathurst)はOpal対象外です。NSW TrainLinkの切符を事前に購入してください。"],"근교선":["Intercity","城际","Antara bandar","நகரிடை","近郊線"],"공식 시간표":["Official timetable","官方时刻表","Jadual rasmi","அதிகாரப்பூர்வ அட்டவணை","公式時刻表"],"실시간을 받지 못해 교통국 공식 시간표(폰에 저장된 오프라인 시간표)로 보여 줘요. 늦음·취소는 반영되지 않아요.":["No live data — showing the official Transport for NSW timetable saved on your phone. Delays and cancellations are not included.","未能获取实时数据,正在显示手机中保存的交通局官方时刻表。不含延误和取消。","Tiada data masa nyata — memaparkan jadual rasmi Transport for NSW yang disimpan dalam telefon. Kelewatan dan pembatalan tidak termasuk.","நேரலை இல்லை — தொலைபேசியில் சேமித்த அதிகாரப்பூர்வ அட்டவணை. தாமதம், ரத்து சேர்க்கப்படவில்லை.","リアルタイムを取得できないため、端末に保存した交通局の公式時刻表を表示しています。遅延・運休は反映されません。"],"실시간 경로를 받지 못해 폰에 저장된 교통국 공식 시간표로 찾았어요(늦음 반영 안 됨).":["No live route — planned with the official timetable saved on your phone (delays not included).","未能获取实时路线,已用手机中保存的官方时刻表查找(不含延误)。","Tiada laluan masa nyata — dirancang dengan jadual rasmi dalam telefon (kelewatan tidak termasuk).","நேரலை வழி இல்லை — சேமித்த அதிகாரப்பூர்வ அட்டவணையால் திட்டமிடப்பட்டது (தாமதம் இல்லை).","リアルタイム経路を取得できないため、端末の公式時刻表で検索しました(遅延は未反映)。"],"지금 이 역에 서는 열차가 없어요.":["No trains stop here right now.","此站目前没有列车。","Tiada tren berhenti di sini sekarang.","இப்போது இங்கு ரயில் நிற்கவில்லை.","現在この駅に停まる列車はありません。"],"앞으로 3시간 안에 갈 수 있는 열차가 없어요.":["No trains in the next 3 hours.","未来3小时内没有可乘列车。","Tiada tren dalam 3 jam akan datang.","அடுத்த 3 மணி நேரத்தில் ரயில் இல்லை.","3時間以内に乗れる列車はありません。"],"🕒 시간표":["🕒 Timetable","🕒 时刻表","🕒 Jadual","🕒 அட்டவணை","🕒 時刻表"],"역 시간표 · 교통국 공식 시간표":["Station timetable · official TfNSW timetable","车站时刻表 · 交通局官方时刻表","Jadual stesen · jadual rasmi TfNSW","நிலைய அட்டவணை · அதிகாரப்பூர்வ","駅時刻表 · 交通局公式時刻表"],"{s} 방면":["towards {s}","开往 {s} 方向","arah {s}","{s} நோக்கி","{s}方面"],"하루 {n}편":["{n} trains a day","每天{n}班","{n} tren sehari","நாளுக்கு {n} ரயில்கள்","1日{n}本"],"첫차":["First train","首班车","Tren pertama","முதல் ரயில்","始発"],"막차":["Last train","末班车","Tren terakhir","கடைசி ரயில்","終電"],"(다음 날)":["(next day)","(次日)","(hari berikut)","(அடுத்த நாள்)","(翌日)"],"표시 없음":["no mark","无标记","tiada tanda","குறியில்லை","無印"],"이 날짜의 시간표는 아직 없어요(4주 치만 저장돼요).":["No timetable for this date yet (4 weeks are stored).","暂无该日期的时刻表(仅保存4周)。","Tiada jadual untuk tarikh ini lagi (4 minggu disimpan).","இந்தத் தேதிக்கு அட்டவணை இல்லை (4 வாரம் மட்டும்).","この日の時刻表はまだありません(4週間分のみ保存)。"],"시간표를 받는 중이에요. 인터넷이 연결되면 바로 나와요.":["Downloading the timetable — it will appear once you are online.","正在下载时刻表,联网后即可显示。","Memuat turun jadual — akan muncul apabila dalam talian.","அட்டவணை பதிவிறக்கப்படுகிறது.","時刻表を取得中です。オンラインになると表示されます。"],"이 날은 이 노선 열차가 이 역에서 출발하지 않아요.":["No departures on this line from this station on this day.","当天此线路在本站没有发车。","Tiada perlepasan laluan ini dari stesen ini pada hari ini.","இந்த நாளில் இந்த வழியில் புறப்பாடு இல்லை.","この日はこの路線の発車はありません。"],"교통국(TfNSW) 공식 시간표(폰에 저장된 오프라인 시간표, 매주 갱신)예요. 공사·운행 변경은 운행 변경 안내를 확인하세요.":["Official Transport for NSW timetable (saved offline on your phone, updated weekly). Check service alerts for trackwork.","新州交通局官方时刻表(离线保存,每周更新)。施工与变更请查看运营通知。","Jadual rasmi Transport for NSW (disimpan luar talian, dikemas kini mingguan). Semak notis untuk kerja landasan.","அதிகாரப்பூர்வ அட்டவணை (ஆஃப்லைன், வாராந்திர புதுப்பிப்பு).","交通局公式時刻表(端末にオフライン保存、毎週更新)。工事・変更は運行情報をご確認ください。"]};
 let LANG = (()=>{ try{ return localStorage.getItem('lang') || 'ko'; }catch(e){ return 'ko'; } })();
 function T(k, v){
   let s = LANG==='ko' ? k : (L10N[k]?.[{en:0, zh:1, ms:2, ta:3, ja:4}[LANG]] ?? L10N[k]?.[0] ?? k);
@@ -431,7 +486,7 @@ const destTxt = d => d==='City Circle' ? d : T('{d}행',{d});
 // 키는 중계 서버에만 있다. 받지 못하면(오프라인 등) 예전처럼 견본 시간표로 보여 준다.
 // =====================================================================
 const LIVE_API = 'https://sydrail-api.kwonys93.workers.dev';
-const STOPID = {"Allawah":"222020","Arncliffe":"10101333","Artarmon":"206410","Ashfield":"213110","Asquith":"207730","Auburn":"10101219","Banksia":"221610","Bankstown":"220010","Barangaroo":"10101513","Bardwell Park":"220710","Beecroft":"211910","Bella Vista":"10101503","Belmore":"219210","Berala":"214120","Berowra":"208110","Beverly Hills":"220910","Bexley North":"10101411","Birrong":"214320","Blacktown":"10101235","Bondi Junction":"202210","Burwood":"213410","Cabramatta":"10101287","Campbelltown":"10101296","Campsie":"10101396","Canley Vale":"216610","Canterbury":"219320","Caringbah":"222910","Carlton":"221810","Carramar":"216330","Castle Hill":"10101506","Casula":"217030","Central":"10101100","Chatswood":"206710","Cheltenham":"211920","Cherrybrook":"2126158","Chester Hill":"216220","Circular Quay":"200020","Clarendon":"275630","Clyde":"214230","Como":"222610","Concord West":"213810","Cronulla":"223020","Crows Nest":"206516","Croydon":"213210","Denistone":"211410","Domestic Airport":"202020","Doonside":"276710","Dulwich Hill":"220310","East Hills":"221320","East Richmond":"275310","Eastwood":"212210","Edgecliff":"202710","Edmondson Park":"217426","Emu Plains":"10101253","Engadine":"10101353","Epping":"212110","Erskineville":"204310","Fairfield":"10101285","Flemington":"214020","Gadigal":"200066","Glenfield":"216710","Gordon":"207210","Granville":"10101227","Green Square":"201710","Guildford":"216110","Gymea":"10101347","Harris Park":"215010","Heathcote":"223320","Hills Showground":"2154392","Holsworthy":"217310","Homebush":"10101216","Hornsby":"207720","Hurlstone Park":"10101394","Hurstville":"10101339","Ingleburn":"256510","International Airport":"202030","Jannali":"222620","Kellyville":"2155382","Killara":"207110","Kings Cross":"201110","Kingsgrove":"220810","Kingswood":"274720","Kirrawee":"223230","Kogarah":"10101336","Lakemba":"219510","Leightonfield":"216310","Leppington":"217933","Leumeah":"256010","Lewisham":"204920","Lidcombe":"214110","Lindfield":"207010","Liverpool":"10101289","Loftus":"10101352","Macarthur":"256030","Macdonaldtown":"201520","Macquarie Fields":"256410","Macquarie Park":"10101509","Macquarie University":"211310","Marayong":"214820","Marrickville":"220410","Martin Place":"10101106","Mascot":"10101330","Meadowbank":"211430","Merrylands":"216010","Milsons Point":"10101111","Minto":"256610","Miranda":"10101348","Mortdale":"222310","Mount Colah":"207910","Mount Druitt":"277010","Mount Kuring-gai":"208010","Mulgrave":"275610","Museum":"10101104","Narwee":"10101414","Newtown":"204210","Normanhurst":"207620","North Ryde":"10101510","North Strathfield":"10101205","North Sydney":"10101112","Norwest":"2153477","Oatley":"222320","Olympic Park":"212710","Padstow":"221110","Panania":"221310","Parramatta":"10101229","Pendle Hill":"214530","Pennant Hills":"10101196","Penrith":"10101252","Penshurst":"10101340","Petersham":"204910","Punchbowl":"219610","Pymble":"10101122","Quakers Hill":"276310","Redfern":"10101421","Regents Park":"214310","Revesby":"221210","Rhodes":"213820","Richmond":"10101245","Riverstone":"10101239","Riverwood":"221010","Rockdale":"10101335","Rooty Hill":"276610","Roseville":"206910","Rouse Hill":"10101501","Schofields":"10101238","Sefton":"216210","Seven Hills":"10101234","St James":"200050","St Leonards":"206520","St Marys":"276010","St Peters":"204410","Stanmore":"204810","Strathfield":"10101206","Summer Hill":"213010","Sutherland":"10101345","Sydenham":"204420","Tallawong":"10101500","Tempe":"10101327","Thornleigh":"10101195","Toongabbie":"10101233","Town Hall":"200070","Turramurra":"10101123","Turrella":"220530","Victoria Cross":"10101512","Villawood":"10101407","Vineyard":"276520","Wahroonga":"207610","Waitara":"10101126","Warrawee":"207420","Warwick Farm":"10101288","Waterfall":"223330","Waterloo":"201721","Waverton":"206020","Wentworthville":"10101231","Werrington":"274710","West Ryde":"211420","Westmead":"214510","Wiley Park":"219520","Windsor":"275620","Wolli Creek":"220510","Wollstonecraft":"206510","Woolooware":"223010","Wynyard":"200080","Yagoona":"219910","Yennora":"216120"};   // 역 이름 → 교통국 역 번호(stop_finder로 찾음, 기차·메트로 역)
+const STOPID = {"Allawah":"222020","Arncliffe":"10101333","Artarmon":"206410","Ashfield":"213110","Asquith":"207730","Auburn":"10101219","Banksia":"221610","Bankstown":"220010","Barangaroo":"10101513","Bardwell Park":"220710","Beecroft":"211910","Bella Vista":"10101503","Belmore":"219210","Berala":"214120","Berowra":"208110","Beverly Hills":"220910","Bexley North":"10101411","Birrong":"214320","Blacktown":"10101235","Bondi Junction":"202210","Burwood":"213410","Cabramatta":"10101287","Campbelltown":"10101296","Campsie":"10101396","Canley Vale":"216610","Canterbury":"219320","Caringbah":"222910","Carlton":"221810","Carramar":"216330","Castle Hill":"10101506","Casula":"217030","Central":"10101100","Chatswood":"206710","Cheltenham":"211920","Cherrybrook":"2126158","Chester Hill":"216220","Circular Quay":"200020","Clarendon":"275630","Clyde":"214230","Como":"222610","Concord West":"213810","Cronulla":"223020","Crows Nest":"206516","Croydon":"213210","Denistone":"211410","Domestic Airport":"202020","Doonside":"276710","Dulwich Hill":"220310","East Hills":"221320","East Richmond":"275310","Eastwood":"212210","Edgecliff":"202710","Edmondson Park":"217426","Emu Plains":"10101253","Engadine":"10101353","Epping":"212110","Erskineville":"204310","Fairfield":"10101285","Flemington":"214020","Gadigal":"200066","Glenfield":"216710","Gordon":"207210","Granville":"10101227","Green Square":"201710","Guildford":"216110","Gymea":"10101347","Harris Park":"215010","Heathcote":"223320","Hills Showground":"2154392","Holsworthy":"217310","Homebush":"10101216","Hornsby":"207720","Hurlstone Park":"10101394","Hurstville":"10101339","Ingleburn":"256510","International Airport":"202030","Jannali":"222620","Kellyville":"2155382","Killara":"207110","Kings Cross":"201110","Kingsgrove":"220810","Kingswood":"274720","Kirrawee":"223230","Kogarah":"10101336","Lakemba":"219510","Leightonfield":"216310","Leppington":"217933","Leumeah":"256010","Lewisham":"204920","Lidcombe":"214110","Lindfield":"207010","Liverpool":"10101289","Loftus":"10101352","Macarthur":"256030","Macdonaldtown":"201520","Macquarie Fields":"256410","Macquarie Park":"10101509","Macquarie University":"211310","Marayong":"214820","Marrickville":"220410","Martin Place":"10101106","Mascot":"10101330","Meadowbank":"211430","Merrylands":"216010","Milsons Point":"10101111","Minto":"256610","Miranda":"10101348","Mortdale":"222310","Mount Colah":"207910","Mount Druitt":"277010","Mount Kuring-gai":"208010","Mulgrave":"275610","Museum":"10101104","Narwee":"10101414","Newtown":"204210","Normanhurst":"207620","North Ryde":"10101510","North Strathfield":"10101205","North Sydney":"10101112","Norwest":"2153477","Oatley":"222320","Olympic Park":"212710","Padstow":"221110","Panania":"221310","Parramatta":"10101229","Pendle Hill":"214530","Pennant Hills":"10101196","Penrith":"10101252","Penshurst":"10101340","Petersham":"204910","Punchbowl":"219610","Pymble":"10101122","Quakers Hill":"276310","Redfern":"10101421","Regents Park":"214310","Revesby":"221210","Rhodes":"213820","Richmond":"10101245","Riverstone":"10101239","Riverwood":"221010","Rockdale":"10101335","Rooty Hill":"276610","Roseville":"206910","Rouse Hill":"10101501","Schofields":"10101238","Sefton":"216210","Seven Hills":"10101234","St James":"200050","St Leonards":"206520","St Marys":"276010","St Peters":"204410","Stanmore":"204810","Strathfield":"10101206","Summer Hill":"213010","Sutherland":"10101345","Sydenham":"204420","Tallawong":"10101500","Tempe":"10101327","Thornleigh":"10101195","Toongabbie":"10101233","Town Hall":"200070","Turramurra":"10101123","Turrella":"220530","Victoria Cross":"10101512","Villawood":"10101407","Vineyard":"276520","Wahroonga":"207610","Waitara":"10101126","Warrawee":"207420","Warwick Farm":"10101288","Waterfall":"223330","Waterloo":"201721","Waverton":"206020","Wentworthville":"10101231","Werrington":"274710","West Ryde":"211420","Westmead":"214510","Wiley Park":"219520","Windsor":"275620","Wolli Creek":"220510","Wollstonecraft":"206510","Woolooware":"223010","Wynyard":"200080","Yagoona":"219910","Yennora":"216120","Aberdeen":"233610","Adamstown":"228920","Albion Park":"252710","Austinmer":"251540","Awaba":"228310","Bargo":"257420","Bathurst":"279538","Bell":"278620","Bellambi":"251810","Beresfield":"232230","Berry":"253510","Blackheath":"278510","Blaxland":"277410","Bomaderry (Nowra)":"254110","Bombo":"253320","Booragul":"228410","Bowral":"257610","Branxton":"233510","Broadmeadow":"229210","Bullaburra":"278410","Bulli":"251610","Bundanoon":"257810","Burradoo":"257620","Cardiff":"228520","Coalcliff":"250850","Cockle Creek":"228430","Coledale":"251530","Coniston":"250030","Corrimal":"251820","Cowan":"208120","Cringila":"250520","Dapto":"253020","Dora Creek":"226420","Douglas Park":"256910","Dungog":"242010","Dunmore":"252910","East Maitland":"232330","Exeter":"257930","Fairy Meadow":"251910","Fassifern":"228330","Faulconbridge":"277610","Gerringong":"253420","Glenbrook":"277310","Gosford":"225040","Goulburn":"258010","Greta":"233410","Hamilton":"230310","Hawkesbury River":"208310","Hazelbrook":"277910","Helensburgh":"250810","Hexham":"232210","High Street":"232010","Hilldale":"242040","Katoomba":"278020","Kembla Grange":"253010","Kiama":"253330","Koolewong":"225620","Kotara":"228910","Lapstone":"275030","Lawson":"278310","Leura":"278010","Linden":"277820","Lisarow":"225070","Lithgow":"279010","Lochinvar":"232110","Lysaghts":"250510","Maitland":"232020","Martins Creek":"242050","Marulan":"257940","Medlow Bath":"278030","Menangle":"256810","Menangle Park":"256310","Metford":"232310","Mindaribba":"232050","Minnamurra":"253310","Mittagong":"257510","Morisset":"226410","Moss Vale":"257710","Mount Victoria":"278610","Muswellbrook":"233310","Narara":"2250772","Newcastle Interchange":"229310","Niagara Park":"225060","North Wollongong":"250010","Oak Flats":"252920","Otford":"250830","Ourimbah":"225810","Paterson":"242110","Penrose":"257920","Picton":"257110","Point Clare":"225030","Port Kembla":"250540","Port Kembla North":"250530","Rydal":"2790128","Sandgate":"230430","Scarborough":"251510","Scone":"233710","Shellharbour Junction":"2529218","Singleton":"233010","Springwood":"277720","Stanwell Park":"250840","Tahmoor":"257310","Tallong":"257950","Tarana":"27871","Tarro":"232220","Tascott":"225020","Telarah":"232030","Teralba":"228420","Thirroul":"251550","Thornton":"232240","Towradgi":"251830","Tuggerah":"225910","Unanderra":"252610","Valley Heights":"277710","Victoria Street":"232320","Wallarobba":"242020","Warabrook":"230420","Waratah":"230410","Warnervale":"225930","Warrimoo":"277420","Wentworth Falls":"278210","Wingello":"257910","Wirragulla":"242030","Wollongong":"250020","Wombarra":"251520","Wondabyne":"225010","Woodford":"277810","Woonona":"251710","Woy Woy":"225610","Wyee":"225940","Wyong":"225920","Yerrinbool":"257540","Zig Zag":"278630"};   // 역 이름 → 교통국 역 번호(stop_finder로 찾음, 기차·메트로 역)
 const live = {dep:{}, alerts:null, shown:false};
 const sydMod = iso => { const p = Object.fromEntries(fmt.formatToParts(new Date(iso)).map(x=>[x.type,x.value])); return (+p.hour%24)*60+(+p.minute)+(+p.second)/60; };
 const liveFresh = st => { const x = live.dep[st]; return x && x.events && Date.now()-x.at < 90000 ? x : null; };
@@ -474,33 +529,38 @@ function liveTrip(ev, st, nowMod){
 }
 function liveNote(st){
   return liveFresh(st) ? `<div class="sample live"><b>● ${T('실시간')}</b> · ${T('교통국(TfNSW) 실시간 자료예요. 늦은 시간·승강장이 반영돼요.')}</div>`
+    : ttDay(sydneyNow().ymd) >= 0 ? `<div class="sample"><b>${T('공식 시간표')}</b> · ${T('실시간을 받지 못해 교통국 공식 시간표(폰에 저장된 오프라인 시간표)로 보여 줘요. 늦음·취소는 반영되지 않아요.')}</div>`
     : `<div class="sample"><b>${T('견본 데이터')}</b> · ${T('실시간 정보를 불러오는 중이거나 받지 못했어요. 지금은 견본 시각이에요.')}</div>`;
 }
 // 운행 안내(공사·버스 대체·운행 변경): 중계 서버 /alerts — 날짜가 정해진 공사를 먼저
-const lineCode = n => { const m = (n||'').match(/^(T[1-9]|M1)\b/); return m ? m[1] : /metro/i.test(n||'') ? 'M1' : null; };
+const lineCode = n => { n = n || ''; const m = n.match(/^(T[1-9]|M1|BMT|CCN|SCO|SHL|HUN)\b/); if(m) return m[1];
+  return /metro/i.test(n) ? 'M1' : /blue mountains/i.test(n) ? 'BMT' : /central coast|newcastle/i.test(n) ? 'CCN' : /south coast/i.test(n) ? 'SCO' : /southern highlands/i.test(n) ? 'SHL' : /hunter/i.test(n) ? 'HUN' : null; };
 function alertWhen(ws){
   const f = iso => { const d = new Date(iso), p = Object.fromEntries(fmt.formatToParts(d).map(x=>[x.type,x.value]));
     return `${+p.month}/${+p.day}(${wdName(p.weekday)}) ${p.hour}:${p.minute}`; };
   return ws.slice(0,3).map(w=>w.to ? `${f(w.from)} ~ ${f(w.to)}` : T('{a}부터',{a:f(w.from)})).join(' · ');
 }
-function fetchAlerts(){
+function fetchAlerts(retry=0, onlyTr=false){
   const want = ['ko','zh','ms','ta','ja'].includes(LANG) ? LANG : null;
-  if(want) fetch(LIVE_API+'/alerts?lang='+want+'&t='+Math.floor(Date.now()/120000)).then(r=>r.json()).then(j=>{   // 번역본(처음 한 번은 수십 초 걸릴 수 있어 영어를 먼저 보여 줌)
+  if(want) fetch(LIVE_API+'/alerts?lang='+want+'&t='+(retry ? Date.now() : Math.floor(Date.now()/120000))).then(r=>r.json()).then(j=>{
+    // 서버가 새 안내를 아직 다 번역하지 못했으면(한 번에 20초 분량) 몇 초 뒤 다시 받아 나머지도 번역본으로
+    if(j.tr && j.tr.todo > 0 && retry < 15) setTimeout(()=>{ if(LANG===want) fetchAlerts(retry+1, true); }, 3000);   // 번역본(처음 한 번은 수십 초 걸릴 수 있어 영어를 먼저 보여 줌)
     if(!Array.isArray(j.alerts) || LANG!==want) return;
     const by = Object.fromEntries(j.alerts.map(a=>[a.id, a]));
     live.tr = {lang:want, by};
     if(live.alerts) live.alerts = live.alerts.map(a=>by[a.id] ? {...a, title:by[a.id].title, body:by[a.id].text} : a);
     if(!$('alerts').hidden) openAlerts(false, true);
   }).catch(()=>{});
+  if(onlyTr) return;
   fetch(LIVE_API+'/alerts?t='+Math.floor(Date.now()/120000)).then(r=>r.json()).then(j=>{
     if(!Array.isArray(j.alerts)) throw 0;
     live.alerts = j.alerts.filter(a=>!a.general).map(a=>{
       const lines = LINE_ORDER.filter(L=>a.lines.some(n=>lineCode(n)===L));
       const t = live.tr && live.tr.lang===LANG && live.tr.by[a.id];
-      return lines.length ? {id:a.id, lines, title:t ? t.title : a.title, when:alertWhen(a.windows), body:t ? t.text : a.text, works:a.works, live:true} : null;
-    }).filter(Boolean).slice(0, 40);
+      return lines.length ? {id:a.id, lines, from:Date.parse(a.windows[0].from) || 0, title:t ? t.title : a.title, when:alertWhen(a.windows), body:t ? t.text : a.text, works:a.works, live:true} : null;
+    }).filter(Boolean).slice(0, 60);
     renderFavs();
-    if(!live.shown){ live.shown = true; openAlerts(true); }
+    if(!live.shown){ live.shown = true; if(store('alertSnooze')!==sydneyNow().ymd && !restoredView) openAlerts(true); }
   }).catch(()=>{});
 }
 const WDN = {ko:{Sun:'일',Mon:'월',Tue:'화',Wed:'수',Thu:'목',Fri:'금',Sat:'토'},
@@ -539,13 +599,23 @@ const SERVICES = [
   {id:'T8A', line:'T8', h:[5,15,15], phase:4, loop:true, via:'공항 경유', stops:mk([...T8_SOUTH,'International Airport','Domestic Airport','Mascot','Green Square',...LOOP_STOPS])},
   {id:'T8S', line:'T8', h:[null,15,15], phase:11, loop:true, via:'Sydenham 경유', stops:mk([...T8_SOUTH,'Tempe','Sydenham','St Peters','Erskineville','Redfern',...LOOP_STOPS])},
   {id:'T9', line:'T9', h:[8,15,30], phase:10, via:'Northern', stops:mk(['Hornsby','Normanhurst','Thornleigh','Pennant Hills','Beecroft','Cheltenham','Epping','Eastwood','Denistone','West Ryde','Meadowbank','Rhodes','Concord West','North Strathfield','Strathfield','Burwood',['Redfern',9],'Central','Town Hall','Wynyard',...NS_STOPS])},
+  // NSW TrainLink 근교선(Opal 구간) — 교통국 공식 시간표(GTFS sydneytrains, 2026-11-12)의 역 순서·역 사이 시간(중앙값). 배차는 견본
+  {id:'BMT', line:'BMT', h:[30, 60, 60], phase:3, via:'Blue Mountains Line', stops:mk(["Central",["Redfern",3.0],["Croydon",6],["Burwood",1],["Strathfield",2],["Homebush",1.0],["Flemington",2.0],["Lidcombe",2.0],["Auburn",1.0],["Clyde",2.0],["Granville",1.0],["Harris Park",1.0],["Parramatta",1.0],["Westmead",2.0],["Wentworthville",1.0],["Pendle Hill",1.0],["Toongabbie",1.0],["Seven Hills",1.0],["Blacktown",3.0],["Doonside",3.0],["Rooty Hill",2.0],["Mount Druitt",2.0],["St Marys",3.0],["Werrington",1.0],["Kingswood",2.0],["Penrith",2.0],["Emu Plains",2],["Lapstone",6],["Glenbrook",4],["Blaxland",5],["Warrimoo",3],["Valley Heights",4],["Springwood",3],["Faulconbridge",4.0],["Linden",5.0],["Woodford",4.0],["Hazelbrook",3.0],["Lawson",3.0],["Bullaburra",2.0],["Wentworth Falls",6.0],["Leura",6.0],["Katoomba",3.0],["Medlow Bath",6],["Blackheath",5],["Mount Victoria",7],["Bell",8.0],["Zig Zag",14.0],["Lithgow",6.0]])},
+  {id:'CCN', line:'CCN', h:[15, 30, 60], phase:5, via:'Central Coast & Newcastle Line', stops:mk(["Central",["Redfern",3.0],["Croydon",6],["Burwood",1],["Strathfield",2],["North Strathfield",2],["Concord West",1],["Rhodes",1],["Meadowbank",1],["West Ryde",1],["Denistone",1],["Eastwood",1],["Epping",2],["Cheltenham",2],["Pennant Hills",3.0],["Thornleigh",1],["Normanhurst",1],["Hornsby",3],["Asquith",2],["Mount Colah",1],["Mount Kuring-gai",2],["Berowra",4],["Cowan",4],["Hawkesbury River",9],["Wondabyne",7.0],["Woy Woy",6.0],["Koolewong",2.0],["Tascott",2.0],["Point Clare",1.0],["Gosford",3.0],["Narara",5],["Niagara Park",2],["Lisarow",1],["Ourimbah",2],["Tuggerah",5],["Wyong",3],["Warnervale",4],["Wyee",6],["Morisset",6],["Dora Creek",3],["Awaba",8],["Fassifern",4],["Booragul",4],["Teralba",1],["Cockle Creek",2],["Cardiff",4],["Kotara",4],["Adamstown",2],["Broadmeadow",3.0],["Hamilton",3.0],["Newcastle Interchange",4.0]])},
+  {id:'HUND', line:'HUN', h:[30, 60, 60], phase:7, via:'Hunter Line (Dungog)', stops:mk(["Newcastle Interchange",["Hamilton",2],["Waratah",4],["Warabrook",2.0],["Sandgate",2.0],["Hexham",3.0],["Tarro",2.0],["Beresfield",2.0],["Thornton",2.0],["Metford",2.0],["Victoria Street",2.0],["East Maitland",1.0],["High Street",2.0],["Maitland",2.0],["Telarah",3],["Mindaribba",7],["Paterson",8],["Martins Creek",4],["Hilldale",7],["Wallarobba",5],["Wirragulla",6],["Dungog",7]])},
+  {id:'HUNS', line:'HUN', h:[60, 120, 120], phase:9, via:'Hunter Line (Scone)', stops:mk(["Newcastle Interchange",["Hamilton",2],["Waratah",4],["Warabrook",2.0],["Sandgate",2.0],["Hexham",3.0],["Tarro",2.0],["Beresfield",2.0],["Thornton",2.0],["Metford",2.0],["Victoria Street",2.0],["East Maitland",1.0],["High Street",2.0],["Maitland",2.0],["Lochinvar",7],["Greta",5],["Branxton",4],["Singleton",14],["Muswellbrook",31.0],["Aberdeen",9.0],["Scone",10.0]])},
+  {id:'SCO', line:'SCO', h:[30, 60, 60], phase:11, via:'South Coast Line', stops:mk(["Bondi Junction",["Edgecliff",3],["Kings Cross",2],["Martin Place",2],["Town Hall",2],["Central",2],["Redfern",3.0],["Erskineville",3],["St Peters",1.0],["Sydenham",2.0],["Tempe",1.0],["Wolli Creek",1.0],["Arncliffe",1.0],["Banksia",1],["Rockdale",1],["Kogarah",1],["Carlton",1],["Allawah",1],["Hurstville",2],["Penshurst",1.0],["Mortdale",1.0],["Oatley",1.0],["Como",3.0],["Jannali",1.0],["Sutherland",3.0],["Loftus",1.0],["Engadine",3.0],["Heathcote",2.0],["Waterfall",5.0],["Helensburgh",9.0],["Otford",7.0],["Stanwell Park",3.0],["Coalcliff",5.0],["Scarborough",4.0],["Wombarra",2.0],["Coledale",2.0],["Austinmer",2.0],["Thirroul",2.0],["Bulli",2],["Woonona",2],["Bellambi",1],["Corrimal",2],["Towradgi",1],["Fairy Meadow",1],["North Wollongong",2],["Wollongong",3],["Coniston",1.0],["Unanderra",5.0],["Kembla Grange",3],["Dapto",3],["Albion Park",7],["Oak Flats",3],["Shellharbour Junction",4],["Dunmore",2],["Minnamurra",2],["Bombo",4],["Kiama",3]])},
+  {id:'SCOB', line:'SCO', h:[60, 120, 120], phase:13, via:'South Coast Line (Bomaderry)', stops:mk(["Kiama",["Gerringong",8.0],["Berry",8.0],["Bomaderry (Nowra)",9.0]])},
+  {id:'SCOP', line:'SCO', h:[60, 60, 120], phase:15, via:'South Coast Line (Port Kembla)', stops:mk(["Central",["Redfern",3.0],["Erskineville",3],["St Peters",1.0],["Sydenham",2.0],["Tempe",1.0],["Wolli Creek",1.0],["Arncliffe",1.0],["Banksia",1],["Rockdale",1],["Kogarah",1],["Carlton",1],["Allawah",1],["Hurstville",2],["Penshurst",1.0],["Mortdale",1.0],["Oatley",1.0],["Como",3.0],["Jannali",1.0],["Sutherland",3.0],["Loftus",1.0],["Engadine",3.0],["Heathcote",2.0],["Waterfall",5.0],["Helensburgh",9.0],["Otford",7.0],["Stanwell Park",3.0],["Coalcliff",5.0],["Scarborough",4.0],["Wombarra",2.0],["Coledale",2.0],["Austinmer",2.0],["Thirroul",2.0],["Bulli",2],["Woonona",2],["Bellambi",1],["Corrimal",2],["Towradgi",1],["Fairy Meadow",1],["North Wollongong",2],["Wollongong",3],["Coniston",1.0],["Lysaghts",2.0],["Cringila",1.0],["Port Kembla North",1],["Port Kembla",3]])},
+  {id:'SHL', line:'SHL', h:[60, 120, 120], phase:17, via:'Southern Highlands Line', stops:mk(["Campbelltown",["Macarthur",2],["Menangle Park",4],["Menangle",2],["Douglas Park",6],["Picton",9],["Tahmoor",7],["Bargo",7],["Yerrinbool",11],["Mittagong",13],["Bowral",5],["Burradoo",3],["Moss Vale",5],["Exeter",7],["Bundanoon",4],["Penrose",6],["Wingello",4],["Tallong",5],["Marulan",5],["Goulburn",20]])},
 ];
 const FAV_DEST = {'St James':'Mascot', 'Mascot':'St James'};   // 사용자가 자주 가는 구간
 // 내리는 문 방향(위키백과 역 정보의 승강장 모양으로 추정, 선로 2개인 역만). R=오른쪽 L=왼쪽
 const DOOR = {"Artarmon":"R","Asquith":"L","Bankstown":"R","Bardwell Park":"R","Beecroft":"R","Bella Vista":"R","Belmore":"R","Berala":"R","Beverly Hills":"R","Bexley North":"R","Birrong":"R","Bondi Junction":"R","Cabramatta":"L","Canley Vale":"L","Canterbury":"L","Caringbah":"R","Carramar":"R","Casula":"L","Cherrybrook":"R","Chester Hill":"R","Circular Quay":"L","Clarendon":"L","Como":"R","Domestic Airport":"L","Dulwich Hill":"R","Edgecliff":"R","Edmondson Park":"R","Emu Plains":"L","Engadine":"L","Fairfield":"L","Green Square":"L","Guildford":"L","Gymea":"R","Heathcote":"L","Hurlstone Park":"L","Ingleburn":"L","International Airport":"L","Jannali":"L","Kellyville":"L","Killara":"R","Kings Cross":"R","Kingsgrove":"R","Kirrawee":"R","Lakemba":"R","Leightonfield":"L","Leumeah":"L","Loftus":"L","Macdonaldtown":"R","Macquarie Fields":"L","Macquarie Park":"R","Macquarie University":"R","Marayong":"R","Marrickville":"L","Mascot":"L","Meadowbank":"L","Merrylands":"L","Milsons Point":"R","Minto":"L","Miranda":"R","Mortdale":"R","Mount Colah":"R","Mount Kuring-gai":"R","Mulgrave":"R","Museum":"L","Narwee":"R","Newtown":"R","Normanhurst":"L","North Ryde":"R","Oatley":"R","Padstow":"R","Panania":"R","Petersham":"R","Punchbowl":"R","Pymble":"R","Quakers Hill":"R","Regents Park":"R","Richmond":"R","Riverstone":"L","Riverwood":"R","Roseville":"R","Rouse Hill":"L","Schofields":"R","Sefton":"R","St James":"R","St Leonards":"L","Tallawong":"R","Turramurra":"R","Turrella":"R","Villawood":"R","Wahroonga":"R","Waitara":"R","Warrawee":"R","Warwick Farm":"L","Waterfall":"R","Waverton":"L","Werrington":"L","Wiley Park":"L","Wollstonecraft":"L","Woolooware":"R","Yagoona":"R","Yennora":"L"};
 const XFER = 3;                                                 // 갈아탈 때 걸리는 시간(분, 견본)
 const DELAYS = [0,0,0,1,0,2,0,0,3,0];
-const LINE_ORDER = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','M1'];
+const INTERCITY = ['BMT','CCN','SCO','SHL','HUN'];   // NSW TrainLink 근교선(멀리 가는 열차, 시드니 구간은 일부 역 건너뜀)
+const LINE_ORDER = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','M1','BMT','CCN','SCO','SHL','HUN'];
 
 function headway(svc, t, weekend){
   const m = ((t%1440)+1440)%1440;
@@ -554,9 +624,61 @@ function headway(svc, t, weekend){
   return (m>=420&&m<570)||(m>=960&&m<1110) ? svc.h[0] : svc.h[1];
 }
 let tripCache = {key:null, trips:[]};
+// ----- 오프라인 시간표: 교통국 공식 GTFS(기차·메트로) 4주 치를 서버(/tt)에서 한 번 받아 폰에 저장 -----
+// 인터넷이 안 되거나 실시간을 못 받으면 견본 대신 이 공식 시간표로 출발·경로를 보여 준다. 하루 한 번 새 판이 있는지 확인.
+let TT = null;
+const TT_KEY = 'https://sydrail.app/tt-v1';
+const within = (p, ms=1500) => Promise.race([p, new Promise(r=>setTimeout(()=>r(null), ms))]);   // 폰 저장소가 없거나 멈추면 잠시 뒤 포기
+async function ttStore(){ try{ return await within(caches.open('sydrail-tt')); }catch(e){ return null; } }
+async function ttLoad(){
+  let txt = null;
+  try{ const c = await ttStore(); const r = c && await within(c.match(TT_KEY)); if(r) txt = await within(r.text(), 5000); }catch(e){}
+  if(!txt) try{ txt = localStorage.getItem('tt-v1'); }catch(e){}
+  if(txt) try{ TT = JSON.parse(txt); tripCache = {key:null, trips:[]}; }catch(e){}
+  const age = Number(store('tt-at') || 0);
+  if(TT && Date.now() - age < 20*3600e3 && ttDay(sydneyNow().ymd) >= 0) return;   // 하루 안에 받았으면 그대로
+  try{
+    const r = await fetch(LIVE_API+'/tt?d='+sydneyNow().ymd); if(!r.ok) return;
+    const t = await r.text(); const j = JSON.parse(t); if(!j.tr) return;
+    TT = j; tripCache = {key:null, trips:[]}; store('tt-at', String(Date.now()));
+    const c = await ttStore();
+    const ok = c && await within(c.put(TT_KEY, new Response(t, {headers:{'Content-Type':'application/json'}})).then(()=>true), 5000);
+    if(!ok) try{ localStorage.setItem('tt-v1', t); }catch(e){}
+    refreshOpen();
+  }catch(e){}
+}
+// 시간표의 몇째 날인지(없으면 -1)
+function ttDay(ymd){
+  if(!TT) return -1;
+  const d = s => Date.UTC(+s.slice(0,4), +s.slice(4,6)-1, +s.slice(6,8));
+  const i = Math.round((d(ymd) - d(TT.d0))/864e5);
+  return i >= 0 && i < TT.n ? i : -1;
+}
+function ttTrips(now){
+  const di = ttDay(now.ymd); if(di < 0) return null;
+  const lo = now.mod - 150, hi = now.mod + 240, out = [];
+  TT.tr.forEach((r, k)=>{
+    const [l, h, p, m, start, sv] = r, bits = TT.sv[sv], off = TT.tm[m];
+    for(const [d, shift] of [[di, 0], [di-1, -1440]]){             // 어제 시작해 자정을 넘긴 열차도
+      if(d < 0 || !((bits / 2**d) & 1)) continue;
+      const t0 = start + shift; if(t0 > hi || t0 + off[off.length-1] < lo) continue;
+      if(/empty train|not in service/i.test(TT.hd[h][0])) continue;   // 회송 열차 뺌
+      const line = TT.ln[l], [dest, via] = TT.hd[h], svc = SERVICES.find(x=>x.line===line) || {line, via:''};
+      out.push({id:'G'+k+'_'+d, svc, line, dir:'f', dest, via: via ? 'via '+via : svc.via, delay:0, tt:true,
+        times: TT.pt[p].map((si, i)=>({st:TT.st[si], t:t0+off[i], s:t0+off[i]}))});
+    }
+  });
+  return out;
+}
+function refreshOpen(){
+  if(!$('boardview').hidden) renderBoard($('boardHost'), true);
+  else if(!sheet.hidden) renderSheet();
+}
 function getTrips(now){
-  const key = now.ymd + ':' + Math.floor(now.mod);
+  const key = now.ymd + ':' + Math.floor(now.mod) + (TT ? ':tt' : '');
   if(tripCache.key === key) return tripCache.trips;
+  const real = ttTrips(now);                                          // 공식 시간표가 있으면 그것으로
+  if(real){ tripCache = {key, trips:real}; return real; }
   const weekend = now.weekday==='Sat'||now.weekday==='Sun';
   const trips = [];
   for(const svc of SERVICES){
@@ -635,31 +757,54 @@ function fetchTrip(q, a, b){
   const tm = q.planned ? hhmm(q.mod).replace(':','') : hhmm(sydneyNow().mod).replace(':','');
   fetch(`${LIVE_API}/trip?from=${STOPID[a]}&to=${STOPID[b]}&date=${q.ymd}&time=${tm}`).then(r=>r.json()).then(j=>{
     if(j.error || !Array.isArray(j.journeys)) throw 0;
-    live.trip[k] = {at:Date.now(), routes:liveRoutes(j.journeys, q)};
+    live.trip[k] = {at:Date.now(), raw:j.journeys, routes:liveRoutes(j.journeys, q)};
     if(!$('routeview').hidden) renderRoute();
-    else if(od.from===a && od.to===b && shownLegs){ const L = getRoutes(queryTime(), a, b)[routeMode]; if(L){ routeLegs = L; drawRoute(L); showRouteBar(L); } }
-  }).catch(()=>{ live.trip[k] = {fail:true, at:Date.now()}; });
+    else if(od.from===a && od.to===b){
+      if(mapWait && mapWait.a===a && mapWait.b===b){ clearTimeout(mapWait.timer); mapWait = null; drawMapRoute(false); }   // 기다리던 실시간 경로로 처음 한 번
+      else if(shownLegs) drawMapRoute(true);
+    }
+  }).catch(()=>{ live.trip[k] = {fail:true, at:Date.now()}; if(mapWait && mapWait.a===a && mapWait.b===b){ clearTimeout(mapWait.timer); mapWait = null; drawMapRoute(false); } });
 }
 function liveRoutes(journeys, q){
   const fix = m => m < q.mod - 720 ? m + 1440 : m > q.mod + 720 ? m - 1440 : m;
-  const all = journeys.map(j=>j.legs.map(l=>{
-    const times = l.stops.filter(s=>s.p).map(s=>({st:s.n, t:fix(sydMod(s.e || s.p)), s:fix(sydMod(s.p))}));
+  const all = journeys.map(j=>{
+    // 자정을 넘는 열차도 맞게: 첫 역 시각만 오늘 기준으로 맞추고, 나머지는 실제 시각(ISO) 차이로 이어 붙인다
+    const s0 = j.legs[0]?.stops.find(s=>s.p); if(!s0) return [];
+    const ms0 = Date.parse(s0.p), m0 = fix(sydMod(s0.p)), at = iso => m0 + (Date.parse(iso) - ms0)/60000;
+    return j.legs.map(l=>{
+    const times = l.stops.filter(s=>s.p).map(s=>({st:s.n, t:at(s.e || s.p), s:at(s.p)}));
     const raw = l.dest || '', via = (raw.match(/ via (.+)$/)||[])[1] || '';
     return {trip:{line:l.line, dest:raw.replace(/ via .+$/,'').replace(/ Station.*$/,'').replace(/,.*$/,'').trim(), via: via ? 'via '+via : '',
       delay:Math.max(0, Math.round(times[0].t - times[0].s)), times, live:true, realtime:l.realtime, platform:l.platform}, bi:0, ai:times.length-1};
-  })).filter(L=>L.length && L[0].trip.times.length>1 && L[0].trip.times[0].t >= q.mod - 1);
+  }); }).filter(L=>L.length && L[0].trip.times.length>1 && L[0].trip.times[0].t >= q.mod - 1);
   if(!all.length) return null;
   const arr = L => L[L.length-1].trip.times[L[L.length-1].ai].t;
   const fast = all.slice().sort((a,b)=>arr(a)-arr(b) || a.length-b.length)[0];
   const few = all.slice().sort((a,b)=>a.length-b.length || arr(a)-arr(b))[0];
-  return {fast, few};
+  const dep0 = L => L[0].trip.times[L[0].bi].t;
+  return {fast, few, all: all.sort((a,b)=>dep0(a)-dep0(b) || arr(a)-arr(b))};
 }
 function getRoutes(q, a, b){
   const x = live.trip[tripKey(q, a, b)];
   if(x && x.routes) return {...x.routes, live:true};
   if(!x || (x.fail && Date.now()-x.at > 30000)){ delete live.trip[tripKey(q, a, b)]; fetchTrip(q, a, b); }
+  // 새로 받는 동안: 같은 구간의 바로 전 실시간 결과에서 아직 안 떠난 열차로(견본으로 바뀌어 깜박이지 않게)
+  const pre = a+'|'+b+'|'+q.ymd+'|', old = Object.keys(live.trip).filter(k=>k.startsWith(pre) && live.trip[k].raw).map(k=>live.trip[k]).sort((m,n)=>n.at-m.at)[0];
+  if(old){ const r = liveRoutes(old.raw, q); if(r) return {...r, live:true}; }
   return findRoutes(q, a, b);
 }
+// 경로 화면 아래 '다음 열차' 목록: 실시간이면 교통국 결과 전부, 견본이면 시각을 늦춰 가며 다시 찾기
+const jkey = L => L.map(g=>g.trip.line+'@'+Math.round(g.trip.times[g.bi].s ?? g.trip.times[g.bi].t)).join('>');
+function nextRoutes(q, both){
+  if(both.all) return both.all.slice(0, 8);
+  const out = []; let m = q.mod;
+  for(let i=0; i<6; i++){
+    const L = findRoutes({...q, mod:m}, od.from, od.to)[routeMode]; if(!L) break;
+    out.push(L); m = L[0].trip.times[L[0].bi].t + 1;
+  }
+  return out;
+}
+let routePick = null;   // 다음 열차 목록에서 고른 열차(없으면 가장 좋은 경로)
 function findRoutes(now, from, to){
   const trips = getTrips(now), K = 4;
   const lab = [{[from]:{t:now.mod}}];
@@ -739,6 +884,15 @@ run(['Turrella','Bardwell Park','Bexley North','Kingsgrove','Beverly Hills','Nar
 at('Holsworthy',600,1450,'l');
 run(['Macquarie Fields','Ingleburn','Minto','Leumeah','Campbelltown','Macarthur'],540,1565,0,32,'r');
 
+// NSW TrainLink 근교선(2026-11-12 추가): 블루마운틴(서쪽), 센트럴코스트·뉴캐슬(북쪽)·헌터, 사우스코스트(남쪽), 서던하이랜즈(남서쪽)
+run(['Lapstone','Glenbrook','Blaxland','Warrimoo','Valley Heights','Springwood','Faulconbridge','Linden','Woodford','Hazelbrook','Lawson','Bullaburra','Wentworth Falls','Leura','Katoomba','Medlow Bath','Blackheath','Mount Victoria','Bell','Zig Zag','Lithgow','Rydal','Tarana','Bathurst'],-112,1160,-32,0,'dl');
+run(['Cowan','Hawkesbury River','Wondabyne','Woy Woy','Koolewong','Tascott','Point Clare','Gosford','Narara','Niagara Park','Lisarow','Ourimbah','Tuggerah','Wyong','Warnervale','Wyee','Morisset','Dora Creek','Awaba','Fassifern','Booragul','Teralba','Cockle Creek','Cardiff','Kotara','Adamstown','Broadmeadow','Hamilton','Newcastle Interchange'],960,272,0,-28,'r');
+run(['Waratah','Warabrook','Sandgate','Hexham','Tarro','Beresfield','Thornton','Metford','Victoria Street','East Maitland','High Street','Maitland','Lochinvar','Greta','Branxton','Singleton','Muswellbrook','Aberdeen','Scone'],928,-484,-32,0,'dl');
+run(['Telarah','Mindaribba','Paterson','Martins Creek','Hilldale','Wallarobba','Wirragulla','Dungog'],576,-516,0,-32,'r');
+run(['Helensburgh','Otford','Stanwell Park','Coalcliff','Scarborough','Wombarra','Coledale','Austinmer','Thirroul','Bulli','Woonona','Bellambi','Corrimal','Towradgi','Fairy Meadow','North Wollongong','Wollongong','Coniston','Unanderra','Kembla Grange','Dapto','Albion Park','Oak Flats','Shellharbour Junction','Dunmore','Minnamurra','Bombo','Kiama','Gerringong','Berry','Bomaderry (Nowra)'],890,1965,0,30,'l');
+run(['Lysaghts','Cringila','Port Kembla North','Port Kembla'],930,2475,40,0,'dr');
+run(['Menangle Park','Menangle','Douglas Park','Picton','Tahmoor','Bargo','Yerrinbool','Mittagong','Bowral','Burradoo','Moss Vale','Exeter','Bundanoon','Penrose','Wingello','Tallong','Marulan','Goulburn'],540,1757,0,32,'r');
+
 const POS = Object.fromEntries(ST.map(s=>[s[0],[s[1],s[2]]]));
 const coord = n => n[0]==='@' ? n.slice(1).split(',').map(Number) : POS[n];
 
@@ -764,6 +918,14 @@ const DRAW = [
   {id:'T8', path:LOOP}, {id:'T8', path:['Central','Green Square','Mascot','Domestic Airport','International Airport','Wolli Creek','@960,1450','Turrella','Bardwell Park','Bexley North','Kingsgrove','Beverly Hills','Narwee','Riverwood','Padstow','Revesby','Panania','East Hills','Holsworthy','Glenfield','Macquarie Fields','Ingleburn','Minto','Leumeah','Campbelltown','Macarthur']},
   {id:'T8', path:ILL, dash:true},
   {id:'M1', path:['Tallawong','Rouse Hill','Kellyville','Bella Vista','Norwest','Hills Showground','Castle Hill','Cherrybrook','@700,692','Epping','Macquarie University','Macquarie Park','North Ryde','Chatswood','@870,740','Crows Nest','Victoria Cross','Barangaroo','Martin Place','Gadigal','Central','Waterloo','@1030,1300','Sydenham','Marrickville','Dulwich Hill','Hurlstone Park','Canterbury','Campsie','Belmore','Lakemba','Wiley Park','Punchbowl','Bankstown']},
+  // 근교선은 시드니 전철이 끝나는 역부터 그림(시내 구간은 같은 선로의 T 노선 그림을 따라감)
+  {id:'BMT', path:["Emu Plains", "Lapstone", "Glenbrook", "Blaxland", "Warrimoo", "Valley Heights", "Springwood", "Faulconbridge", "Linden", "Woodford", "Hazelbrook", "Lawson", "Bullaburra", "Wentworth Falls", "Leura", "Katoomba", "Medlow Bath", "Blackheath", "Mount Victoria", "Bell", "Zig Zag", "Lithgow", "Rydal", "Tarana", "Bathurst"]},
+  {id:'CCN', path:["Hornsby", "Asquith", "Mount Colah", "Mount Kuring-gai", "Berowra", "Cowan", "Hawkesbury River", "Wondabyne", "Woy Woy", "Koolewong", "Tascott", "Point Clare", "Gosford", "Narara", "Niagara Park", "Lisarow", "Ourimbah", "Tuggerah", "Wyong", "Warnervale", "Wyee", "Morisset", "Dora Creek", "Awaba", "Fassifern", "Booragul", "Teralba", "Cockle Creek", "Cardiff", "Kotara", "Adamstown", "Broadmeadow", "Hamilton", "Newcastle Interchange"]},
+  {id:'HUN', path:["Newcastle Interchange", "Hamilton", "Waratah", "Warabrook", "Sandgate", "Hexham", "Tarro", "Beresfield", "Thornton", "Metford", "Victoria Street", "East Maitland", "High Street", "Maitland", "Lochinvar", "Greta", "Branxton", "Singleton", "Muswellbrook", "Aberdeen", "Scone"]},
+  {id:'HUN', path:["Maitland", "Telarah", "Mindaribba", "Paterson", "Martins Creek", "Hilldale", "Wallarobba", "Wirragulla", "Dungog"]},
+  {id:'SCO', path:["Sutherland", "Loftus", "Engadine", "Heathcote", "Waterfall", "Helensburgh", "Otford", "Stanwell Park", "Coalcliff", "Scarborough", "Wombarra", "Coledale", "Austinmer", "Thirroul", "Bulli", "Woonona", "Bellambi", "Corrimal", "Towradgi", "Fairy Meadow", "North Wollongong", "Wollongong", "Coniston", "Unanderra", "Kembla Grange", "Dapto", "Albion Park", "Oak Flats", "Shellharbour Junction", "Dunmore", "Minnamurra", "Bombo", "Kiama", "Gerringong", "Berry", "Bomaderry (Nowra)"]},
+  {id:'SCO', path:["Coniston", "Lysaghts", "Cringila", "Port Kembla North", "Port Kembla"]},
+  {id:'SHL', path:["Campbelltown", "Macarthur", "Menangle Park", "Menangle", "Douglas Park", "Picton", "Tahmoor", "Bargo", "Yerrinbool", "Mittagong", "Bowral", "Burradoo", "Moss Vale", "Exeter", "Bundanoon", "Penrose", "Wingello", "Tallong", "Marulan", "Goulburn"]}
 ];
 const GAP = 5;   // 나란히 그릴 때 노선 사이 간격
 const NS = 'http://www.w3.org/2000/svg';
@@ -834,12 +996,29 @@ function segPath(line, a, b){
     if(D.id !== line) continue;
     D.path.forEach((n,i)=>{ if(n!==a) return; D.path.forEach((m,j)=>{ if(m===b && (!best || Math.abs(i-j) < Math.abs(best.i-best.j))) best = {p:D.path, i, j}; }); });
   }
-  if(!best) return [coord(a), coord(b)];
+  if(!best) return netPath(line, a, b);
   const {p, i, j} = best;
   return (i<j ? p.slice(i, j+1) : p.slice(j, i+1).reverse()).map(coord);
 }
+// 노선 그림 전체를 하나의 선로망으로: 근교선 열차가 시내 T 노선 선로를 지날 때 그 선을 따라가게
+let NET = null;
+function netPath(line, a, b){
+  if(!NET){ NET = {};
+    for(const D of DRAW) for(let i=0;i<D.path.length-1;i++){ const x = D.path[i], y = D.path[i+1];
+      for(const [u,v] of [[x,y],[y,x]]) (NET[u] ||= []).push([v, D.id]); } }
+  if(!NET[a] || !NET[b]) return [coord(a), coord(b)];
+  const dist = {[a]:0}, prev = {}, done = new Set(), q = [a];
+  while(q.length){
+    q.sort((m,n)=>dist[m]-dist[n]); const u = q.shift(); if(done.has(u)) continue; done.add(u); if(u===b) break;
+    for(const [v, id] of NET[u]){ const [x1,y1] = coord(u), [x2,y2] = coord(v), w = Math.hypot(x2-x1, y2-y1) * (id===line ? 1 : 1.3);
+      if(dist[u] + w < (dist[v] ?? Infinity)){ dist[v] = dist[u] + w; prev[v] = u; q.push(v); } }
+  }
+  if(!(b in dist)) return [coord(a), coord(b)];
+  const out = [b]; while(out[0]!==a) out.unshift(prev[out[0]]);
+  return out.map(coord);
+}
 let shownLegs = null;
-function drawRoute(legs){
+function drawRoute(legs, quiet){                                 // quiet: 움직임 없이 바로(이미 보여 준 경로를 실시간 자료로 바꿀 때)
   routeLayer.innerHTML = ''; dotLayer.innerHTML = ''; shownLegs = legs;
   lineLayer.classList.toggle('dimmed', !!legs);
   if(!legs) return [];
@@ -856,9 +1035,9 @@ function drawRoute(legs){
     if(path.length >= 2){
       const pts = path.map(p=>p.join(',')).join(' ');
       // 선이 출발역에서 도착역 쪽으로 그려지며 따라간다
-      const anim = `animation-delay:${Math.round(k*step)}ms;animation-duration:${Math.round((st.length-1)*step)}ms`;
-      el('polyline',{class:'rt halo draw', points:pts, pathLength:1, style:anim}, routeLayer);
-      el('polyline',{class:'rt main draw', points:pts, stroke:LINE_COLOR[g.trip.line], pathLength:1, style:anim}, routeLayer);
+      const anim = `animation-delay:${Math.round(k*step)}ms;animation-duration:${Math.round((st.length-1)*step)}ms`, dc = quiet ? '' : ' draw';
+      el('polyline',{class:'rt halo'+dc, points:pts, pathLength:1, style:anim}, routeLayer);
+      el('polyline',{class:'rt main'+dc, points:pts, stroke:LINE_COLOR[g.trip.line], pathLength:1, style:anim}, routeLayer);
       all.push(...path);
     }
     k += Math.max(st.length-1, 0);
@@ -868,7 +1047,7 @@ function drawRoute(legs){
   seq.forEach((n,i)=>{
     const [x,y] = POS[n], r = +(marks[n]?.dataset.r || marks[n]?.getAttribute('r') || 6);
     const end = i===0 || i===seq.length-1;
-    el('circle',{class:'rdot'+(end?' end':''), cx:x, cy:y, r:Math.max(4, r*(end?0.8:0.62)), style:`animation-delay:${Math.round(i*step)}ms`}, dotLayer);
+    el('circle',{class:'rdot'+(end?' end':''), cx:x, cy:y, r:Math.max(4, r*(end?0.8:0.62)), style:quiet ? 'animation:none' : `animation-delay:${Math.round(i*step)}ms`}, dotLayer);
   });
   return all;
 }
@@ -877,7 +1056,7 @@ function fitTo(points){
   const xs = points.map(p=>p[0]), ys = points.map(p=>p[1]);
   const r = svg.getBoundingClientRect(), ar = r.height/Math.max(r.width,1);
   const pad = 70, x0 = Math.min(...xs)-pad, x1 = Math.max(...xs)+pad, y0 = Math.min(...ys)-pad, y1 = Math.max(...ys)+pad+60;
-  let w = Math.max(x1-x0, (y1-y0)/ar, 300); w = Math.min(w, 2600);
+  let w = Math.max(x1-x0, (y1-y0)/ar, 300); w = Math.min(w, 4200);
   vb = {w, h:w*ar, x:(x0+x1)/2-w/2, y:(y0+y1)/2-(w*ar)/2}; applyVB();
 }
 function showRouteBar(legs){
@@ -905,7 +1084,7 @@ function homeView(){
 }
 function applyVB(){ svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`); hideMenu(); }
 function zoomAt(f, cx, cy){
-  const nw = Math.min(2600, Math.max(220, vb.w*f)); f = nw/vb.w;
+  const nw = Math.min(4200, Math.max(220, vb.w*f)); f = nw/vb.w;
   vb.x = cx-(cx-vb.x)*f; vb.y = cy-(cy-vb.y)*f; vb.w = nw; vb.h *= f; applyVB();
 }
 function toMap(cx, cy){ const r = svg.getBoundingClientRect(); return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h]; }
@@ -1059,12 +1238,27 @@ $('menu').addEventListener('click', e=>{
 // =====================================================================
 const od = {from:null, to:null};
 // 출발·도착이 다 정해지면 경로 화면 대신 노선도에서 경로를 움직임으로 보여 준다(자세히는 아래 [경로 보기])
+// 실시간 경로를 받기 전에 견본으로 한 번 그리고, 받은 뒤 또 그리면 움직임이 두 번 나온다
+// → 실시간 경로를 최대 2.5초 기다렸다가 한 번만 그린다(늦게 오면 움직임 없이 조용히 바꿈)
+let mapWait = null;
 function showRouteOnMap(){
   closeSheet(); hideMenu();
+  const q = queryTime(), x = live.trip[tripKey(q, od.from, od.to)];
+  clearTimeout(mapWait?.timer); mapWait = null;
+  if(STOPID[od.from] && STOPID[od.to] && !(x && (x.routes || x.fail))){
+    getRoutes(q, od.from, od.to);                                    // 실시간 경로 요청
+    drawRoute(null); showRouteBar(null);
+    mapWait = {a:od.from, b:od.to, timer:setTimeout(()=>{ mapWait = null; drawMapRoute(false); }, 2500)};
+    return;
+  }
+  drawMapRoute(false);
+}
+function drawMapRoute(quiet){
   const legs = getRoutes(queryTime(), od.from, od.to)[routeMode];
+  if(quiet && legs && routeLegs && jkey(legs)===jkey(routeLegs)) return;   // 같은 경로면 다시 안 그림
   routeLegs = legs;
-  if(!legs) return openRoute();                                    // 갈 수 있는 열차가 없으면 경로 화면에서 안내
-  fitTo(drawRoute(legs)); showRouteBar(legs);
+  if(!legs){ if(!quiet) openRoute(); return; }                     // 갈 수 있는 열차가 없으면 경로 화면에서 안내
+  const pts = drawRoute(legs, quiet); if(!quiet) fitTo(pts); showRouteBar(legs);
 }
 function setFrom(st){
   if(st===od.to) od.to = null;
@@ -1097,6 +1291,7 @@ function openSheet(st, mode){
   board.st = st; board.selected = null; board.only = false;
   board.dest = mode==='from' ? (od.to || store('dest-'+st) || FAV_DEST[st] || '') : mode==='info' ? (store('dest-'+st) || FAV_DEST[st] || '') : '';
   if(board.dest && !directDests(st).includes(board.dest)) board.dest = '';
+  board.only = !!board.dest;                                   // 도착역이 정해져 있으면 그 역에 가는 열차만(끄면 전부)
   sheet.hidden = false;
   renderSheet();
   requestAnimationFrame(()=>placeSheet(false));
@@ -1145,7 +1340,7 @@ $('sbody').addEventListener('change', e=>{
   if(e.target.id!=='sheetPick' || !e.target.value) return;
   if(sh.mode==='from') setTo(e.target.value); else setFrom(e.target.value);
 });
-// 끌어 올리기·내리기 (작은 창일 때는 어디를 밀어도 되고, 전체 화면에서는 손잡이로 내림)
+// 끌어 올리기·내리기 (작은 창일 때는 어디를 밀어도·눌러도 되고, 전체 화면에서는 손잡이로 내림)
 let drag = null;
 sheet.addEventListener('pointerdown', e=>{
   if(e.target.closest('button,select,input,label')) return;
@@ -1165,7 +1360,7 @@ function dragEnd(e){
   if(!drag || e.pointerId!==drag.id) return;
   sheet.classList.remove('dragging');
   const maxY = sheet.offsetHeight - peekPx(), wasFull = sh.full;
-  if(drag.moved < 6){ if(e.target.closest('#grab')) placeSheet(!sh.full); else placeSheet(sh.full); }
+  if(drag.moved < 6){ if(e.target.closest('#grab')) placeSheet(!sh.full); else placeSheet(true); }   // 작은 창은 아무 데나 눌러도 끌어 올린 것처럼 위로
   else if(sh.y > maxY + 50) closeSheet();
   else placeSheet(wasFull ? sh.y < maxY*0.35 : sh.y < maxY*0.8);
   drag = null;
@@ -1189,7 +1384,7 @@ function rowHTML(d){
     ${minsHTML(d.away)}
     <span class="mid">
       <span class="top"><span class="badge" style="background:${LINE_COLOR[t.line]}">${t.line}</span>
-        <span class="dest">${esc(t.dest)}</span>${t.cancelled?`<span class="late">${T('취소')}</span>`:''}${t.delay?`<span class="late">${T('+{n}분 지연',{n:t.delay})}</span>`:''}${t.platform?`<span class="tag nx">${T('{n}번 승강장',{n:t.platform})}</span>`:''}${d.fastest?'<span class="fast">'+T('가장 빨리 도착')+'</span>':''}</span>
+        <span class="dest">${esc(t.dest)}</span>${INTERCITY.includes(t.line)?`<span class="tag exp">${T('근교선')}</span>`:''}${t.cancelled?`<span class="late">${T('취소')}</span>`:''}${t.delay?`<span class="late">${T('+{n}분 지연',{n:t.delay})}</span>`:''}${t.platform?`<span class="tag nx">${T('{n}번 승강장',{n:t.platform})}</span>`:''}${d.fastest?'<span class="fast">'+T('가장 빨리 도착')+'</span>':''}</span>
       <span class="via">${esc(T(t.via))} · ${T('{t} 출발',{t:hhmm(d.dep)})}</span>
     </span>${tag}</button>`;
 }
@@ -1212,6 +1407,8 @@ function detailHTML(d, list, cls){
     <ol class="stops">${items}</ol>${miss}</section>`;
 }
 function renderBoard(host, isPage){
+  if(document.activeElement?.classList.contains('bFind') && host.contains(document.activeElement)){ board.pending = true; return; }   // 도착역을 치는 중이면 나중에
+  board.pending = false;
   boardHostEl = host; board.isPage = isPage;
   const now = sydneyNow(), st = board.st;
   const all = departuresAt(now, st, board.dest);
@@ -1227,24 +1424,57 @@ function renderBoard(host, isPage){
       ${liveNote(st)}`:''}
     <div class="bctl">
       <label for="bDest">${T('도착역')} <select class="dsel" id="bDest"><option value="">${T('고르지 않음')}</option>${directDests(st).map(s=>`<option${s===board.dest?' selected':''}>${esc(s)}</option>`).join('')}</select></label>
+      <span class="bfind"><input type="search" class="bFind" placeholder="🔍 ${T('도착역 이름 쳐서 찾기')}" autocomplete="off" enterkeyhint="search" aria-label="${T('도착역 이름 쳐서 찾기')}"><div class="bsugg" hidden></div></span>
       ${someMiss||board.only?`<label class="controls" for="bOnly"><span class="switch"><input type="checkbox" id="bOnly"${board.only?' checked':''}><span></span></span>${esc(T('{d} 가는 열차만',{d:board.dest}))}</label>`:''}
     </div>
     ${best?`<div class="next"><span class="k">${esc(T('{d} 가장 빨리',{d:board.dest}))}</span><span class="v">${T('{a} 출발 → {b} 도착',{a:hhmm(best.dep),b:hhmm(best.targetAt)})}</span><span class="via">${best.trip.line} ${esc(T(best.trip.via))} · ${best.away<1?T('곧 도착'):T('{n}분 후',{n:Math.floor(best.away)})}</span></div>`:''}
-    <div class="board"><div class="list">${rows||'<div class="empty">'+T('지금 이 역에 서는 열차가 없어요(견본 시간표 기준).')+'</div>'}</div>${two&&sel?detailHTML(sel,all,'side'):''}</div>
+    <div class="board"><div class="list">${rows||'<div class="empty">'+T(TT?'지금 이 역에 서는 열차가 없어요.':'지금 이 역에 서는 열차가 없어요(견본 시간표 기준).')+'</div>'}</div>${two&&sel?detailHTML(sel,all,'side'):''}</div>
     <p class="foot">${T('도착역 목록에는 갈아타지 않고 갈 수 있는 역만 나와요. 갈아타야 하면 노선도에서 [출발] → [도착]으로 경로를 찾으세요.')}</p>`;
 }
 document.addEventListener('click', e=>{
   if(!boardHostEl || !boardHostEl.contains(e.target)) return;
   const r = e.target.closest('.row'); if(r){ board.selected = r.dataset.id; renderBoard(boardHostEl, board.isPage); }
 });
+// ----- 역 상세: 도착역을 직접 쳐서 찾기(위쪽 검색과 같은 방식, 단어 일부·오타도) -----
+function renderBFind(inp){
+  const raw = inp.value, box = inp.nextElementSibling;
+  if(!raw.trim()){ box.hidden = true; return; }
+  const direct = new Set(directDests(board.st)), hits = searchStations(raw).filter(n=>n!==board.st);
+  box.innerHTML = hits.length ? hits.map(n=>`<button class="bsrow${direct.has(n)?' direct':''}" data-bfind="${esc(n)}"><span>${hilite(n, raw)}</span><small>${direct.has(n)?T('갈아타지 않고 가요'):T('갈아타야 해요 → 경로 보기')}</small></button>`).join('')
+    : `<div class="snone">${esc(T('"{q}"와 비슷한 역이 없어요. 영어 역 이름으로 쳐 보세요.',{q:raw}))}</div>`;
+  box.hidden = false;
+}
+document.addEventListener('input', e=>{ if(e.target.classList?.contains('bFind')) renderBFind(e.target); });
+document.addEventListener('keydown', e=>{
+  if(!e.target.classList?.contains('bFind') || e.key!=='Enter') return;
+  const first = e.target.nextElementSibling.querySelector('[data-bfind]'); if(first){ e.preventDefault(); first.click(); }
+});
+document.addEventListener('focusout', e=>{
+  if(!e.target.classList?.contains('bFind')) return;
+  setTimeout(()=>{ if(document.activeElement?.classList.contains('bFind')) return;
+    const box = e.target.nextElementSibling; if(box) box.hidden = true;
+    if(board.pending && boardHostEl) renderBoard(boardHostEl, board.isPage); }, 200);
+});
+document.addEventListener('pointerdown', e=>{
+  const b = e.target.closest('[data-bfind]'); if(!b) return;
+  e.preventDefault();                                   // 입력칸 포커스를 잃기 전에 고른다
+  const n = b.dataset.bfind; document.activeElement?.blur();
+  if(directDests(board.st).includes(n)){
+    board.dest = n; board.only = true; board.selected = null; store('dest-'+board.st, n);
+    renderBoard(boardHostEl, board.isPage);
+  } else {                                              // 바로 못 가면: 이 역 → 그 역 경로 화면
+    od.from = board.st; od.to = n; drawPins(); updateReset(); openRoute();
+  }
+});
 document.addEventListener('change', e=>{
-  if(e.target.id==='bDest'){ board.dest = e.target.value; board.selected = null; store('dest-'+board.st, board.dest); renderBoard(boardHostEl, board.isPage); }
+  if(e.target.id==='bDest'){ board.dest = e.target.value; board.only = !!board.dest; board.selected = null; store('dest-'+board.st, board.dest); renderBoard(boardHostEl, board.isPage); }
   if(e.target.id==='bOnly'){ board.only = e.target.checked; renderBoard(boardHostEl, board.isPage); }
 });
 function openBoardPage(st){
   board.st = st; board.selected = null; board.only = false;
   board.dest = store('dest-'+st) ?? FAV_DEST[st] ?? '';
   if(board.dest && !directDests(st).includes(board.dest)) board.dest = '';
+  board.only = !!board.dest;                                   // 도착역이 정해져 있으면 그 역에 가는 열차만(끄면 전부)
   $('boardview').hidden = false;
   renderBoard($('boardHost'), true);
   $('boardview').scrollTop = 0;
@@ -1325,16 +1555,20 @@ function openAlerts(onlyNew, keepSeen){
   let seen = []; try{ seen = JSON.parse(store('seenAlerts')) || []; }catch(e){}
   const mine = myLines();
   const list = activeAlerts().map(a=>({...a, mine:a.lines.some(L=>mine.has(L)), fresh:!seen.includes(a.id)}))
-    .sort((a,b)=>(b.mine-a.mine) || (b.fresh-a.fresh));
+    .sort((a,b)=>(a.from||0)-(b.from||0));   // 날짜순(이미 시작한 것·곧 시작하는 것부터). 내 경로·새 안내는 표시만
   if(onlyNew && !list.some(a=>a.fresh)) return;
   $('aList').innerHTML = (list.length ? list.map(a=>`<div class="aitem"><div class="ahead">${a.lines.map(L=>`<span class="badge" style="background:${LINE_COLOR[L]}">${L==='M1'?T('메트로'):L}</span>`).join('')}`
       + `${a.mine?'<span class="tag">'+T('내 경로')+'</span>':''}${a.fresh?'<span class="tag new">'+T('새 안내')+'</span>':''}<b>${esc(a.title)}</b></div>`
       + `<div class="when">${esc(a.when)}</div><p>${esc(a.body)}</p></div>`).join('') : '<p class="snone">'+T('지금 알려진 운행 변경이 없어요.')+'</p>')
     + (list.some(a=>a.live) ? '<p class="sample live" style="margin:8px 0">'+T(live.tr && live.tr.lang===LANG ? '교통국(TfNSW) 실시간 운행 안내를 자동 번역했어요. 정확한 내용은 영어 원문(교통국)을 확인하세요.' : '교통국(TfNSW) 실시간 운행 안내예요. 내용은 영어 원문이에요.')+'</p>' : '');
+  $('aSnooze').checked = store('alertSnooze')===sydneyNow().ymd;
   $('alerts').hidden = false; hideMenu();
   store('seenAlerts', JSON.stringify([...new Set([...seen, ...list.map(a=>a.id)])].slice(-60)));
 }
-function closeAlerts(){ $('alerts').hidden = true; }
+function closeAlerts(){
+  if(!$('alerts').hidden) store('alertSnooze', $('aSnooze').checked ? sydneyNow().ymd : '');   // 체크하면 오늘은 앱을 열어도 저절로 뜨지 않음
+  $('alerts').hidden = true;
+}
 $('aOk').addEventListener('click', closeAlerts);
 $('aX').addEventListener('click', closeAlerts);
 $('alerts').addEventListener('click', e=>{ if(e.target.id==='alerts') closeAlerts(); });
@@ -1454,7 +1688,8 @@ $('rFav').addEventListener('click', ()=>{
   saveFavs(); $('rFav').setAttribute('aria-pressed', isFav()); $('rFav').textContent = isFav()?'★':'☆';
 });
 function openRoute(){
-  closeSheet();
+  closeSheet(); routePick = null;
+  if(geo.on) startGeo(false);
   $('routeview').hidden = false;
   renderRoute();
   $('routeview').scrollTop = 0;
@@ -1463,13 +1698,16 @@ function renderRoute(){
   const now = queryTime();
   $('rFav').setAttribute('aria-pressed', isFav()); $('rFav').textContent = isFav()?'★':'☆';
   document.querySelectorAll('.rtab').forEach(b=>b.setAttribute('aria-selected', b.dataset.mode===routeMode));
-  const both = getRoutes(now, od.from, od.to), legs = both[routeMode];
+  const both = getRoutes(now, od.from, od.to), nexts = both[routeMode] ? nextRoutes(now, both) : [];
+  let legs = both[routeMode];
+  const picked = routePick && nexts.find(L=>jkey(L)===routePick);
+  if(picked) legs = picked; else routePick = null;
   routeLegs = legs;
   const endT = L => L ? L[L.length-1].trip.times[L[L.length-1].ai].t : -1;
   const same = both.fast && both.few && both.fast.length===both.few.length && endT(both.fast)===endT(both.few);
-  const head = `<div class="odpair">${esc(od.from)} → ${esc(od.to)}</div>${whenHTML(now)}`
+  const head = `<div class="odpair">${esc(od.from)} → ${esc(od.to)}</div><div id="rprog"></div>${whenHTML(now)}`
     + (same ? '<div class="rsame">'+T(routeMode==='few' ? '가장 빠른 경로가 환승도 가장 적어요.' : '이 경로가 환승도 가장 적어요.')+'</div>' : '');
-  if(!legs){ $('routeHost').innerHTML = head+'<div class="rempty">'+T('앞으로 3시간 안에 갈 수 있는 열차가 없어요(견본 시간표 기준).')+'</div>'; return; }
+  if(!legs){ setTimeout(updateProgress); $('routeHost').innerHTML = head+'<div class="rempty">'+T(TT?'앞으로 3시간 안에 갈 수 있는 열차가 없어요.':'앞으로 3시간 안에 갈 수 있는 열차가 없어요(견본 시간표 기준).')+'</div>'; return; }
   const dep = legs[0].trip.times[legs[0].bi].t, last = legs[legs.length-1], arr = last.trip.times[last.ai].t;
   const xfers = legs.length-1, wait = dep - now.mod, fare = opalFare(legs, now);
   let html = '';
@@ -1496,19 +1734,26 @@ function renderRoute(){
   });
   $('routeHost').innerHTML = `${head}
     <div class="sum"><small>${T('소요시간')}</small><span class="big">${T('{n}분',{n:Math.round(arr-dep)})}</span><span class="meta">${xfers?T('환승 {n}회',{n:xfers}):T('환승 없음')} · ${now.planned?T('{t} 이후 첫 열차',{t:hhmm(now.mod)}):(wait<1?T('곧 출발'):T('{n}분 뒤 출발',{n:Math.floor(wait)}))}</span></div>
-    <div class="times"><div>${T('출발')}<b>${hhmm(dep)}</b></div><div>${T('도착')}<b>${hhmm(arr)}</b></div><div>${T('요금')}<b>${aud(fare.total)}</b></div></div>
+    <div class="times"><div>${T('출발')}<b>${hhmm(dep)}</b></div><div>${T('도착')}<b>${hhmm(arr)}</b></div><div>${T('요금')}<b>${fare.nonOpal ? '—' : aud(fare.total)}</b></div></div>
     <div class="seg faretype" role="group" aria-label="${T('카드 종류')}">${Object.keys(OPAL).map(k=>`<button data-fare="${k}" aria-pressed="${k===fareType}">${T(FARE_NAMES[k])}</button>`).join('')}</div>
+    ${fare.nonOpal ? `<p class="farenote">${T('Lithgow 너머(Rydal·Tarana·Bathurst)는 Opal 구간 밖이에요. NSW TrainLink 승차권을 미리 사야 해요.')}</p>` : ''}
     <p class="farenote">${T('Opal {c} · {k}km · {p}',{c:T(FARE_NAMES[fareType]), k:fare.dist.toFixed(1), p:T(fareType==='gold'?'하루 $2.50 상한':fare.peak?'출퇴근 시간 요금':'할인 시간 요금(30% 할인)')})}${fare.airport?' · '+T('공항역 이용료 {f} 포함',{f:aud(fare.air)}):''} · ${T('하루 최대 {c}',{c:aud(fare.cap)})}</p>
     <div class="legs">${html}</div>
+    <h3 class="nexth">${T('다음 열차')}</h3>
+    <div class="nlist">${nexts.map(L=>{ const d = L[0].trip.times[L[0].bi].t, z = L[L.length-1], e = z.trip.times[z.ai].t, w = Math.round(d - now.mod), dl = Math.max(...L.map(g=>g.trip.delay||0));
+      return `<button class="nrow" data-pick="${esc(jkey(L))}" aria-pressed="${jkey(L)===jkey(legs)}"><span class="nt">${hhmm(d)}</span><span class="nw">${now.planned?'':w<1?T('곧 출발'):T('{n}분 뒤',{n:w})}</span>`
+        + `<span class="nl">${L.map(g=>`<span class="badge" style="background:${LINE_COLOR[g.trip.line]||'var(--muted)'}">${g.trip.line==='M1'?T('메트로'):esc(g.trip.line)}</span>`).join('→')}${L[0].trip.platform?' '+T('{n}번 승강장',{n:L[0].trip.platform}):''}${dl?` <span class="late">${T('+{n}분 지연',{n:dl})}</span>`:''}</span>`
+        + `<span class="nd">→ ${hhmm(e)}<br>${T('{n}분',{n:Math.round(e-d)})}</span></button>`; }).join('')}</div>
     <div class="ractions"><button class="ract" data-ract="share">⤴ ${T('경로 공유')}</button><button class="ract" data-ract="gmap">🗺 ${T('Google 지도에서 보기')}</button></div>
-    <div class="sample"><b>${T('참고')}</b> · ${T('요금은 교통국 공식 Opal 요금표로 탄 시각의 출퇴근·할인 시간을 따져 계산했어요.')} ${T(both.live?'열차·시각·승강장은 교통국 경로 찾기(공식 시간표 + 실시간 늦음)예요.':'실시간 경로를 받는 중이거나 받지 못해 견본 시간표로 보여 주고 있어요.')} ${T('내리는 문 방향은 위키백과 역 정보의 승강장 모양으로 추정했어요(공식 자료 아님). 안내 방송을 따르세요.')}</div>`;
+    <div class="sample"><b>${T('참고')}</b> · ${T('요금은 교통국 공식 Opal 요금표로 탄 시각의 출퇴근·할인 시간을 따져 계산했어요.')} ${T(both.live?'열차·시각·승강장은 교통국 경로 찾기(공식 시간표 + 실시간 늦음)예요.':ttDay(now.ymd)>=0?'실시간 경로를 받지 못해 폰에 저장된 교통국 공식 시간표로 찾았어요(늦음 반영 안 됨).':'실시간 경로를 받는 중이거나 받지 못해 견본 시간표로 보여 주고 있어요.')} ${T('내리는 문 방향은 위키백과 역 정보의 승강장 모양으로 추정했어요(공식 자료 아님). 안내 방송을 따르세요.')}</div>`;
+  updateProgress();
 }
 
 // ----- Opal 요금(성인, 호주 달러) — 교통국 공식 요금표(transportnsw.info Adult Opal fares, 2026-11 확인) -----
 // 기차·메트로: 거리 구간별 [출퇴근 시간 요금, 그 밖의 시간(30% 할인)]. 출퇴근 시간 = 월~목(공휴일 제외) 06:30~10:00, 15:00~19:00 (탄 시각 기준)
 // 금·토·일·공휴일은 하루 종일 할인 요금. 공항역(Domestic·International)에서 타거나 내리면 공항역 이용료 $18.61 추가(2026-06-29부터).
 // 거리 = 타는 역~내리는 역 사이 지나는 역들의 실제 위치(교통국 좌표)를 이은 거리(선로 거리에 가까운 추정).
-const STOPLL = {"Allawah":[-33.96973,151.11455],"Artarmon":[-33.80854,151.1847],"Ashfield":[-33.88764,151.12585],"Asquith":[-33.68852,151.1082],"Banksia":[-33.945,151.14059],"Bankstown":[-33.91785,151.03465],"Bardwell Park":[-33.93142,151.12526],"Beecroft":[-33.74927,151.06661],"Belmore":[-33.91723,151.08841],"Berala":[-33.87178,151.03252],"Berowra":[-33.62338,151.15323],"Beverly Hills":[-33.94912,151.08086],"Birrong":[-33.89259,151.02428],"Bondi Junction":[-33.8912,151.24838],"Burwood":[-33.8771,151.10386],"Canley Vale":[-33.88733,150.94354],"Canterbury":[-33.91209,151.11873],"Caringbah":[-34.04158,151.12203],"Carlton":[-33.96824,151.1245],"Carramar":[-33.88445,150.96098],"Casula":[-33.95021,150.91183],"Chatswood":[-33.79724,151.18093],"Cheltenham":[-33.75561,151.07846],"Cherrybrook":[-33.73666,151.03199],"Chester Hill":[-33.88366,151.00025],"Circular Quay":[-33.86135,151.21081],"Clarendon":[-33.60858,150.78789],"Clyde":[-33.83595,151.01694],"Como":[-34.00462,151.06824],"Concord West":[-33.8486,151.08562],"Cronulla":[-34.05579,151.1515],"Crows Nest":[-33.82562,151.19914],"Croydon":[-33.88307,151.11521],"Denistone":[-33.79963,151.08693],"Domestic Airport":[-33.93363,151.18066],"Doonside":[-33.7639,150.8687],"Dulwich Hill":[-33.91094,151.14072],"East Hills":[-33.96182,150.98473],"East Richmond":[-33.60173,150.75892],"Eastwood":[-33.7903,151.0823],"Edgecliff":[-33.87937,151.23625],"Edmondson Park":[-33.96932,150.8588],"Epping":[-33.77284,151.08208],"Erskineville":[-33.90018,151.1855],"Flemington":[-33.86491,151.07018],"Gadigal":[-33.87308,151.20872],"Glenfield":[-33.97221,150.89307],"Gordon":[-33.75591,151.15445],"Green Square":[-33.90608,151.20258],"Guildford":[-33.85444,150.98439],"Harris Park":[-33.82335,151.00765],"Heathcote":[-34.08792,151.00833],"Hills Showground":[-33.72791,150.98702],"Holsworthy":[-33.96319,150.95659],"Hornsby":[-33.70347,151.09836],"Ingleburn":[-33.99748,150.86458],"International Airport":[-33.93497,151.16584],"Jannali":[-34.01611,151.06465],"Kellyville":[-33.71337,150.93523],"Killara":[-33.7657,151.16185],"Kings Cross":[-33.87448,151.22223],"Kingsgrove":[-33.94048,151.10082],"Kingswood":[-33.75842,150.72053],"Kirrawee":[-34.03498,151.07122],"Lakemba":[-33.91996,151.07631],"Leightonfield":[-33.88148,150.98489],"Leppington":[-33.95446,150.80817],"Leumeah":[-34.05068,150.83061],"Lewisham":[-33.89342,151.14771],"Lidcombe":[-33.86376,151.04513],"Lindfield":[-33.77552,151.16927],"Macarthur":[-34.07199,150.79716],"Macdonaldtown":[-33.89696,151.1857],"Macquarie Fields":[-33.98486,150.87882],"Macquarie University":[-33.77728,151.11827],"Marayong":[-33.7461,150.90017],"Marrickville":[-33.91387,151.15336],"Meadowbank":[-33.81579,151.09011],"Merrylands":[-33.83669,150.99249],"Minto":[-34.02744,150.84249],"Mortdale":[-33.97105,151.081],"Mount Colah":[-33.67175,151.1147],"Mount Druitt":[-33.76956,150.82013],"Mount Kuring-gai":[-33.65359,151.13682],"Mulgrave":[-33.62652,150.83004],"Newtown":[-33.89791,151.17938],"Normanhurst":[-33.72083,151.09707],"Norwest":[-33.73462,150.96352],"Oatley":[-33.98038,151.07901],"Olympic Park":[-33.8466,151.06933],"Padstow":[-33.95192,151.03218],"Panania":[-33.95428,150.99826],"Pendle Hill":[-33.8012,150.95608],"Petersham":[-33.89386,151.15557],"Punchbowl":[-33.9254,151.05555],"Quakers Hill":[-33.72746,150.88623],"Regents Park":[-33.88319,151.02402],"Revesby":[-33.95252,151.0152],"Rhodes":[-33.83049,151.08705],"Riverwood":[-33.95139,151.05246],"Rooty Hill":[-33.77163,150.84465],"Roseville":[-33.78444,151.17767],"Sefton":[-33.88528,151.0117],"St James":[-33.87062,151.21186],"St Leonards":[-33.82223,151.19413],"St Marys":[-33.7621,150.77518],"St Peters":[-33.90727,151.18074],"Stanmore":[-33.89447,151.16415],"Summer Hill":[-33.89044,151.1387],"Sydenham":[-33.91446,151.16653],"Town Hall":[-33.87354,151.20693],"Turrella":[-33.9298,151.14034],"Vineyard":[-33.65031,150.85115],"Wahroonga":[-33.71804,151.11755],"Warrawee":[-33.7244,151.12183],"Waterfall":[-34.13491,150.99455],"Waterloo":[-33.89744,151.20024],"Waverton":[-33.83762,151.19738],"Werrington":[-33.75916,150.75759],"West Ryde":[-33.8072,151.09019],"Westmead":[-33.80848,150.98789],"Wiley Park":[-33.92276,151.06792],"Windsor":[-33.61375,150.81121],"Wolli Creek":[-33.92854,151.15411],"Wollstonecraft":[-33.83194,151.19175],"Woolooware":[-34.04754,151.14376],"Wynyard":[-33.86595,151.2061],"Yagoona":[-33.90721,151.0246],"Yennora":[-33.86466,150.97105],"Arncliffe":[-33.93678,151.14717],"Auburn":[-33.84943,151.03302],"Barangaroo":[-33.85958,151.20262],"Bella Vista":[-33.73057,150.94402],"Bexley North":[-33.93751,151.11377],"Blacktown":[-33.76854,150.90708],"Cabramatta":[-33.89474,150.93888],"Campbelltown":[-34.06356,150.81463],"Campsie":[-33.91043,151.10346],"Castle Hill":[-33.73163,151.00729],"Central":[-33.88402,151.2062],"Emu Plains":[-33.74573,150.67143],"Engadine":[-34.0677,151.01486],"Fairfield":[-33.87224,150.95725],"Granville":[-33.83276,151.01187],"Gymea":[-34.03487,151.08526],"Homebush":[-33.86669,151.0862],"Hurlstone Park":[-33.9102,151.13248],"Hurstville":[-33.96744,151.10269],"Kogarah":[-33.96254,151.13249],"Liverpool":[-33.92493,150.92733],"Loftus":[-34.04522,151.05132],"Macquarie Park":[-33.78508,151.12837],"Martin Place":[-33.86765,151.21058],"Mascot":[-33.92318,151.18733],"Milsons Point":[-33.84594,151.21184],"Miranda":[-34.03625,151.10209],"Museum":[-33.87557,151.20995],"Narwee":[-33.94768,151.07058],"North Ryde":[-33.79422,151.13799],"North Strathfield":[-33.85919,151.08818],"North Sydney":[-33.84115,151.20741],"Parramatta":[-33.81749,151.00532],"Pennant Hills":[-33.73791,151.07255],"Penrith":[-33.75015,150.69652],"Penshurst":[-33.96621,151.08885],"Pymble":[-33.74478,151.14226],"Redfern":[-33.89205,151.19842],"Richmond":[-33.59885,150.75264],"Riverstone":[-33.67926,150.86038],"Rockdale":[-33.95225,151.13662],"Rouse Hill":[-33.69181,150.92417],"Schofields":[-33.70438,150.87377],"Seven Hills":[-33.77435,150.93612],"Strathfield":[-33.87167,151.09429],"Sutherland":[-34.03175,151.05722],"Tallawong":[-33.69163,150.90601],"Tempe":[-33.9239,151.1566],"Thornleigh":[-33.7319,151.07816],"Toongabbie":[-33.78739,150.95144],"Turramurra":[-33.73259,151.12864],"Victoria Cross":[-33.83773,151.20738],"Villawood":[-33.88083,150.97686],"Waitara":[-33.71037,151.10494],"Warwick Farm":[-33.91332,150.93509],"Wentworthville":[-33.80707,150.97237]};
+const STOPLL = {"Allawah":[-33.96973,151.11455],"Artarmon":[-33.80854,151.1847],"Ashfield":[-33.88764,151.12585],"Asquith":[-33.68852,151.1082],"Banksia":[-33.945,151.14059],"Bankstown":[-33.91785,151.03465],"Bardwell Park":[-33.93142,151.12526],"Beecroft":[-33.74927,151.06661],"Belmore":[-33.91723,151.08841],"Berala":[-33.87178,151.03252],"Berowra":[-33.62338,151.15323],"Beverly Hills":[-33.94912,151.08086],"Birrong":[-33.89259,151.02428],"Bondi Junction":[-33.8912,151.24838],"Burwood":[-33.8771,151.10386],"Canley Vale":[-33.88733,150.94354],"Canterbury":[-33.91209,151.11873],"Caringbah":[-34.04158,151.12203],"Carlton":[-33.96824,151.1245],"Carramar":[-33.88445,150.96098],"Casula":[-33.95021,150.91183],"Chatswood":[-33.79724,151.18093],"Cheltenham":[-33.75561,151.07846],"Cherrybrook":[-33.73666,151.03199],"Chester Hill":[-33.88366,151.00025],"Circular Quay":[-33.86135,151.21081],"Clarendon":[-33.60858,150.78789],"Clyde":[-33.83595,151.01694],"Como":[-34.00462,151.06824],"Concord West":[-33.8486,151.08562],"Cronulla":[-34.05579,151.1515],"Crows Nest":[-33.82562,151.19914],"Croydon":[-33.88307,151.11521],"Denistone":[-33.79963,151.08693],"Domestic Airport":[-33.93363,151.18066],"Doonside":[-33.7639,150.8687],"Dulwich Hill":[-33.91094,151.14072],"East Hills":[-33.96182,150.98473],"East Richmond":[-33.60173,150.75892],"Eastwood":[-33.7903,151.0823],"Edgecliff":[-33.87937,151.23625],"Edmondson Park":[-33.96932,150.8588],"Epping":[-33.77284,151.08208],"Erskineville":[-33.90018,151.1855],"Flemington":[-33.86491,151.07018],"Gadigal":[-33.87308,151.20872],"Glenfield":[-33.97221,150.89307],"Gordon":[-33.75591,151.15445],"Green Square":[-33.90608,151.20258],"Guildford":[-33.85444,150.98439],"Harris Park":[-33.82335,151.00765],"Heathcote":[-34.08792,151.00833],"Hills Showground":[-33.72791,150.98702],"Holsworthy":[-33.96319,150.95659],"Hornsby":[-33.70347,151.09836],"Ingleburn":[-33.99748,150.86458],"International Airport":[-33.93497,151.16584],"Jannali":[-34.01611,151.06465],"Kellyville":[-33.71337,150.93523],"Killara":[-33.7657,151.16185],"Kings Cross":[-33.87448,151.22223],"Kingsgrove":[-33.94048,151.10082],"Kingswood":[-33.75842,150.72053],"Kirrawee":[-34.03498,151.07122],"Lakemba":[-33.91996,151.07631],"Leightonfield":[-33.88148,150.98489],"Leppington":[-33.95446,150.80817],"Leumeah":[-34.05068,150.83061],"Lewisham":[-33.89342,151.14771],"Lidcombe":[-33.86376,151.04513],"Lindfield":[-33.77552,151.16927],"Macarthur":[-34.07199,150.79716],"Macdonaldtown":[-33.89696,151.1857],"Macquarie Fields":[-33.98486,150.87882],"Macquarie University":[-33.77728,151.11827],"Marayong":[-33.7461,150.90017],"Marrickville":[-33.91387,151.15336],"Meadowbank":[-33.81579,151.09011],"Merrylands":[-33.83669,150.99249],"Minto":[-34.02744,150.84249],"Mortdale":[-33.97105,151.081],"Mount Colah":[-33.67175,151.1147],"Mount Druitt":[-33.76956,150.82013],"Mount Kuring-gai":[-33.65359,151.13682],"Mulgrave":[-33.62652,150.83004],"Newtown":[-33.89791,151.17938],"Normanhurst":[-33.72083,151.09707],"Norwest":[-33.73462,150.96352],"Oatley":[-33.98038,151.07901],"Olympic Park":[-33.8466,151.06933],"Padstow":[-33.95192,151.03218],"Panania":[-33.95428,150.99826],"Pendle Hill":[-33.8012,150.95608],"Petersham":[-33.89386,151.15557],"Punchbowl":[-33.9254,151.05555],"Quakers Hill":[-33.72746,150.88623],"Regents Park":[-33.88319,151.02402],"Revesby":[-33.95252,151.0152],"Rhodes":[-33.83049,151.08705],"Riverwood":[-33.95139,151.05246],"Rooty Hill":[-33.77163,150.84465],"Roseville":[-33.78444,151.17767],"Sefton":[-33.88528,151.0117],"St James":[-33.87062,151.21186],"St Leonards":[-33.82223,151.19413],"St Marys":[-33.7621,150.77518],"St Peters":[-33.90727,151.18074],"Stanmore":[-33.89447,151.16415],"Summer Hill":[-33.89044,151.1387],"Sydenham":[-33.91446,151.16653],"Town Hall":[-33.87354,151.20693],"Turrella":[-33.9298,151.14034],"Vineyard":[-33.65031,150.85115],"Wahroonga":[-33.71804,151.11755],"Warrawee":[-33.7244,151.12183],"Waterfall":[-34.13491,150.99455],"Waterloo":[-33.89744,151.20024],"Waverton":[-33.83762,151.19738],"Werrington":[-33.75916,150.75759],"West Ryde":[-33.8072,151.09019],"Westmead":[-33.80848,150.98789],"Wiley Park":[-33.92276,151.06792],"Windsor":[-33.61375,150.81121],"Wolli Creek":[-33.92854,151.15411],"Wollstonecraft":[-33.83194,151.19175],"Woolooware":[-34.04754,151.14376],"Wynyard":[-33.86595,151.2061],"Yagoona":[-33.90721,151.0246],"Yennora":[-33.86466,150.97105],"Arncliffe":[-33.93678,151.14717],"Auburn":[-33.84943,151.03302],"Barangaroo":[-33.85958,151.20262],"Bella Vista":[-33.73057,150.94402],"Bexley North":[-33.93751,151.11377],"Blacktown":[-33.76854,150.90708],"Cabramatta":[-33.89474,150.93888],"Campbelltown":[-34.06356,150.81463],"Campsie":[-33.91043,151.10346],"Castle Hill":[-33.73163,151.00729],"Central":[-33.88402,151.2062],"Emu Plains":[-33.74573,150.67143],"Engadine":[-34.0677,151.01486],"Fairfield":[-33.87224,150.95725],"Granville":[-33.83276,151.01187],"Gymea":[-34.03487,151.08526],"Homebush":[-33.86669,151.0862],"Hurlstone Park":[-33.9102,151.13248],"Hurstville":[-33.96744,151.10269],"Kogarah":[-33.96254,151.13249],"Liverpool":[-33.92493,150.92733],"Loftus":[-34.04522,151.05132],"Macquarie Park":[-33.78508,151.12837],"Martin Place":[-33.86765,151.21058],"Mascot":[-33.92318,151.18733],"Milsons Point":[-33.84594,151.21184],"Miranda":[-34.03625,151.10209],"Museum":[-33.87557,151.20995],"Narwee":[-33.94768,151.07058],"North Ryde":[-33.79422,151.13799],"North Strathfield":[-33.85919,151.08818],"North Sydney":[-33.84115,151.20741],"Parramatta":[-33.81749,151.00532],"Pennant Hills":[-33.73791,151.07255],"Penrith":[-33.75015,150.69652],"Penshurst":[-33.96621,151.08885],"Pymble":[-33.74478,151.14226],"Redfern":[-33.89205,151.19842],"Richmond":[-33.59885,150.75264],"Riverstone":[-33.67926,150.86038],"Rockdale":[-33.95225,151.13662],"Rouse Hill":[-33.69181,150.92417],"Schofields":[-33.70438,150.87377],"Seven Hills":[-33.77435,150.93612],"Strathfield":[-33.87167,151.09429],"Sutherland":[-34.03175,151.05722],"Tallawong":[-33.69163,150.90601],"Tempe":[-33.9239,151.1566],"Thornleigh":[-33.7319,151.07816],"Toongabbie":[-33.78739,150.95144],"Turramurra":[-33.73259,151.12864],"Victoria Cross":[-33.83773,151.20738],"Villawood":[-33.88083,150.97686],"Waitara":[-33.71037,151.10494],"Warwick Farm":[-33.91332,150.93509],"Wentworthville":[-33.80707,150.97237],"Kotara":[-32.9414,151.69849],"Niagara Park":[-33.38333,151.35428],"Warabrook":[-32.88705,151.70989],"Fairy Meadow":[-34.39583,150.89617],"Unanderra":[-34.45443,150.84626],"Port Kembla":[-34.47724,150.90192],"Coniston":[-34.43745,150.88553],"Tarro":[-32.80931,151.66994],"Hawkesbury River":[-33.54679,151.22651],"Bargo":[-34.29136,150.58021],"Beresfield":[-32.79895,151.65786],"Springwood":[-33.69884,150.56398],"Point Clare":[-33.44577,151.32856],"Hexham":[-32.82947,151.68442],"Hilldale":[-32.5045,151.64977],"Bomaderry (Nowra)":[-34.85378,150.60981],"Exeter":[-34.61377,150.31734],"Faulconbridge":[-33.69649,150.53503],"Tascott":[-33.45136,151.31806],"Waratah":[-32.90277,151.73167],"High Street":[-32.74145,151.56369],"Dungog":[-32.40229,151.75954],"Thornton":[-32.78359,151.63983],"East Maitland":[-32.74488,151.58742],"Corrimal":[-34.37573,150.90497],"Linden":[-33.715,150.50526],"Mittagong":[-34.45271,150.44769],"Marulan":[-34.7095,150.00642],"Valley Heights":[-33.70447,150.58381],"Bell":[-33.50569,150.27889],"Muswellbrook":[-32.26749,150.89032],"Booragul":[-32.97142,151.60469],"Coalcliff":[-34.24225,150.97724],"Morisset":[-33.10925,151.48773],"Cardiff":[-32.94182,151.66298],"Scone":[-32.04694,150.8669],"Paterson":[-32.6024,151.61464],"Menangle Park":[-34.1037,150.74496],"Aberdeen":[-32.1671,150.89205],"Telarah":[-32.72391,151.53963],"Tahmoor":[-34.22368,150.58991],"Austinmer":[-34.30641,150.92931],"Hazelbrook":[-33.72397,150.4546],"Bulli":[-34.33448,150.91474],"Awaba":[-33.01292,151.54163],"Fassifern":[-32.98579,151.58125],"Woodford":[-33.73545,150.48192],"Wyee":[-33.18045,151.48712],"Albion Park":[-34.56265,150.7985],"Zig Zag":[-33.47189,150.20213],"Thirroul":[-34.31842,150.91865],"Shellharbour Junction":[-34.5912,150.8448],"Wyong":[-33.28548,151.42526],"Coledale":[-34.28939,150.94334],"Cringila":[-34.46718,150.87842],"Branxton":[-32.66225,151.34564],"Newcastle Interchange":[-32.92404,151.75908],"Bowral":[-34.47812,150.41666],"Warrimoo":[-33.7212,150.60198],"Mount Victoria":[-33.58811,150.25697],"Ourimbah":[-33.3596,151.36999],"Goulburn":[-34.75846,149.71927],"Berry":[-34.78033,150.69697],"Glenbrook":[-33.769,150.62083],"Sandgate":[-32.8719,151.7026],"Oak Flats":[-34.57223,150.82091],"Cockle Creek":[-32.94271,151.62338],"Lawson":[-33.71914,150.42982],"Katoomba":[-33.71157,150.31116],"Gerringong":[-34.74489,150.81751],"Wondabyne":[-33.49214,151.25701],"Stanwell Park":[-34.22659,150.98094],"Broadmeadow":[-32.92302,151.73469],"Mindaribba":[-32.66932,151.58431],"Wentworth Falls":[-33.70947,150.37631],"Bullaburra":[-33.72361,150.41461],"Bombo":[-34.65803,150.85398],"Singleton":[-32.57177,151.16517],"Otford":[-34.2102,151.006],"Yerrinbool":[-34.37174,150.5435],"Picton":[-34.17915,150.6126],"Martins Creek":[-32.55869,151.61851],"Penrose":[-34.67255,150.21176],"Bellambi":[-34.36332,150.9099],"Menangle":[-34.1252,150.74443],"Wombarra":[-34.27593,150.95315],"North Wollongong":[-34.41259,150.89135],"Lisarow":[-33.38231,151.36982],"Tarana":[-33.52411,149.90759],"Cowan":[-33.59311,151.17172],"Burradoo":[-34.49402,150.39834],"Wingello":[-34.69218,150.15839],"Wallarobba":[-32.49614,151.69568],"Moss Vale":[-34.54796,150.37199],"Bundanoon":[-34.65613,150.29874],"Kembla Grange":[-34.47022,150.81734],"Lochinvar":[-32.72072,151.44909],"Towradgi":[-34.38469,150.90124],"Leura":[-33.71172,150.33027],"Lapstone":[-33.7737,150.6428],"Bathurst":[-33.42563,149.58322],"Adamstown":[-32.93373,151.72008],"Kiama":[-34.67252,150.85469],"Dunmore":[-34.60591,150.84014],"Teralba":[-32.96271,151.60346],"Blaxland":[-33.74358,150.6096],"Lithgow":[-33.4805,150.15745],"Tuggerah":[-33.30809,151.42015],"Hamilton":[-32.91871,151.74887],"Woonona":[-34.35023,150.91495],"Metford":[-32.76488,151.61787],"Medlow Bath":[-33.67388,150.28079],"Douglas Park":[-34.18323,150.70994],"Rydal":[-33.48357,150.03181],"Narara":[-33.39479,151.34431],"Victoria Street":[-32.75096,151.59383],"Wirragulla":[-32.46177,151.74346],"Lysaghts":[-34.45484,150.87609],"Gosford":[-33.42388,151.34171],"Maitland":[-32.73804,151.5521],"Koolewong":[-33.46697,151.31866],"Wollongong":[-34.42702,150.88824],"Minnamurra":[-34.6257,150.85226],"Blackheath":[-33.63288,150.28434],"Scarborough":[-34.26499,150.96579],"Woy Woy":[-33.48511,151.32362],"Dapto":[-34.49209,150.79233],"Tallong":[-34.71833,150.08651],"Helensburgh":[-34.17687,150.99482],"Port Kembla North":[-34.47277,150.88805],"Warnervale":[-33.24756,151.44856],"Greta":[-32.68662,151.38409],"Dora Creek":[-33.08319,151.50116]};
 // 카드 종류별(교통국 Child·Concession·Gold Senior/Pensioner 요금 페이지, 공항역 페이지 2026-11-12 확인): 거리 구간별 [출퇴근, 할인], 하루 상한 [월~목, 금~일·공휴일], 공항역 이용료
 const OPAL = {
   adult: {rail:[[10, 4.33, 3.03], [20, 5.38, 3.76], [35, 6.20, 4.34], [65, 8.28, 5.79], [Infinity, 10.66, 7.46]], cap:[19.30, 9.65], air:18.61},
@@ -1519,6 +1764,7 @@ const OPAL = {
 const FARE_NAMES = {adult:'성인', child:'어린이·청소년', conc:'할인', gold:'골드'};
 let fareType = (()=>{ try{ const v = localStorage.getItem('fareType'); return OPAL[v] ? v : 'adult'; }catch(e){ return 'adult'; } })();
 const AIRPORT_FEE = OPAL.adult.air;
+const NON_OPAL = ['Rydal','Tarana','Bathurst'];
 const NSW_HOLIDAYS = ['20260101','20260126','20260403','20260404','20260405','20260406','20260425','20260608','20261005','20261225','20261226','20261228',
   '20270101','20270126','20270326','20270327','20270328','20270329','20270425','20270614','20271004','20271225','20271226','20271227','20271228'];   // NSW 공휴일(대략, 교통국 기준 확인 필요)
 const km = (a, b) => { const A = STOPLL[a], B = STOPLL[b]; if(!A || !B) return 0; const r = Math.PI/180, x = (B[1]-A[1])*r*Math.cos((A[0]+B[0])/2*r), y = (B[0]-A[0])*r; return 6371*Math.hypot(x, y); };
@@ -1534,7 +1780,8 @@ function opalFare(legs, q){
   const peak = monThu && ((m >= 390 && m < 600) || (m >= 900 && m < 1140));
   const F = OPAL[fareType], band = F.rail.find(b=>dist <= b[0]);
   const base = peak ? band[1] : band[2];
-  return {dist, peak, base, airport, air:F.air, total: base + (airport ? F.air : 0), cap: monThu ? F.cap[0] : F.cap[1]};
+  const nonOpal = legs.some(g=>g.trip.times.slice(g.bi, g.ai+1).some(x=>NON_OPAL.includes(x.st)));   // Lithgow 너머(Rydal·Tarana·Bathurst)는 Opal이 안 됨
+  return {dist, peak, base, airport, air:F.air, nonOpal, total: base + (airport ? F.air : 0), cap: monThu ? F.cap[0] : F.cap[1]};
 }
 const aud = v => 'A$' + v.toFixed(2);
 // 앱 안(WebView)이면 앱 본체에 부탁하고, 브라우저면 브라우저 기능을 쓴다
@@ -1564,11 +1811,12 @@ $('routeHost').addEventListener('click', e=>{
   const l = $('mid'+b.dataset.leg); l.hidden = !l.hidden; b.setAttribute('aria-expanded', !l.hidden);
 });
 $('routeHost').addEventListener('change', e=>{ if(e.target.id==='whenTime' && e.target.value){ when.time = e.target.value; renderRoute(); } });
+$('routeHost').addEventListener('click', e=>{ const n = e.target.closest('[data-pick]'); if(n){ routePick = n.dataset.pick; renderRoute(); $('routeview').scrollTo({top:0, behavior:'smooth'}); } });
 $('routeHost').addEventListener('click', e=>{ const b = e.target.closest('[data-fare]'); if(!b) return; fareType = b.dataset.fare; try{ localStorage.setItem('fareType', fareType); }catch(err){} renderRoute(); });
-document.querySelector('.rtabs').addEventListener('click', e=>{ const b=e.target.closest('.rtab'); if(b){ routeMode=b.dataset.mode; renderRoute(); } });
-$('rSwap').addEventListener('click', ()=>{ [od.from, od.to] = [od.to, od.from]; drawPins(); updateReset(); renderRoute(); });
+document.querySelector('.rtabs').addEventListener('click', e=>{ const b=e.target.closest('.rtab'); if(b){ routeMode=b.dataset.mode; routePick=null; renderRoute(); } });
+$('rSwap').addEventListener('click', ()=>{ [od.from, od.to] = [od.to, od.from]; routePick = null; drawPins(); updateReset(); renderRoute(); });
 $('rClose').addEventListener('click', ()=>{
-  $('routeview').hidden = true;
+  $('routeview').hidden = true; stopGeo();
   fitTo(drawRoute(routeLegs)); showRouteBar(routeLegs);   // 닫으면 노선도에 경로를 색으로 표시
 });
 
@@ -1640,6 +1888,7 @@ document.addEventListener('pointerdown', e=>{ if(!$('langMenu').hidden && !e.tar
 window.sydrailBack = () => {
   if(!$('langMenu').hidden) return closeLang();
   if(!$('alerts').hidden) return closeAlerts();
+  if(!$('ttview').hidden){ $('ttview').hidden = true; return; }
   if(!$('sugg').hidden){ closeSugg(); $('q').blur(); return; }
   if(!$('routeview').hidden) return $('rClose').click();
   if(!$('boardview').hidden) return $('bBack').click();
@@ -1647,11 +1896,207 @@ window.sydrailBack = () => {
   if(!$('menu').hidden) return hideMenu();
   window.ReactNativeWebView?.postMessage('exit');
 };
+// ----- 경로 진행 상황: 폰 위치(GPS)를 경로의 역 좌표(교통국)에 맞춰, 지금 어느 역 사이인지 -----
+const geo = {pos:null, at:0, watch:null, err:null, on: store('geoOn')==='1'};
+function startGeo(fresh){
+  if(!navigator.geolocation){ geo.err = 'none'; return updateProgress(); }
+  geo.on = true; store('geoOn', '1');
+  const ok = p => { geo.pos = {lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy}; geo.at = Date.now(); geo.err = null; updateProgress(); };
+  const bad = e => { geo.err = e.code || 'x'; updateProgress(); };
+  if(fresh) navigator.geolocation.getCurrentPosition(ok, bad, {enableHighAccuracy:true, maximumAge:0, timeout:20000});
+  if(geo.watch===null) geo.watch = navigator.geolocation.watchPosition(ok, bad, {enableHighAccuracy:true, maximumAge:10000, timeout:30000});
+  updateProgress();
+}
+function stopGeo(){ if(geo.watch!==null){ navigator.geolocation.clearWatch(geo.watch); geo.watch = null; } }
+function routeSeq(legs){
+  const seq = [];
+  legs.forEach((g, n)=>g.trip.times.slice(g.bi, g.ai+1).forEach((x, k)=>{
+    const last = seq[seq.length-1];
+    if(last && last.st===x.st){ last.x = true; return; }                    // 갈아타는 역은 한 번만
+    seq.push({st:x.st, col:LINE_COLOR[g.trip.line] || 'var(--muted)', x: n>0 && k===0});
+  }));
+  return seq;
+}
+function whereOnRoute(seq, p){
+  const kx = 111.32*Math.cos(p.lat*Math.PI/180), ky = 110.57;
+  const xy = n => { const c = STOPLL[n]; return c ? [(c[1]-p.lon)*kx, (c[0]-p.lat)*ky] : null; };   // 내 위치가 (0,0)인 km 좌표
+  let best = null;
+  for(let i=0; i<seq.length-1; i++){
+    const A = xy(seq[i].st), B = xy(seq[i+1].st); if(!A || !B) continue;
+    const dx = B[0]-A[0], dy = B[1]-A[1], L2 = dx*dx+dy*dy || 1e-9;
+    const t = Math.max(0, Math.min(1, -(A[0]*dx + A[1]*dy)/L2));
+    const d = Math.hypot(A[0]+t*dx, A[1]+t*dy);
+    if(!best || d < best.d) best = {i, t, d, toNext: Math.hypot(B[0], B[1]), seg: Math.sqrt(L2)};
+  }
+  return best;
+}
+function updateProgress(){
+  const host = document.getElementById('rprog'); if(!host || $('routeview').hidden) return;
+  const legs = routeLegs; if(!legs){ host.innerHTML = ''; return; }
+  const seq = routeSeq(legs), n = seq.length, W = 58, pad = 30;
+  let pos = null, txt = '', sub = '';
+  if(!geo.on) txt = `<button class="pbtn" id="geoBtn">📍 ${T('내 위치로 진행 상황 보기')}</button>`;
+  else if(geo.err) txt = '⚠ ' + T('위치를 받지 못했어요.'), sub = T(geo.err===1 ? '휴대폰·브라우저 설정에서 이 앱의 위치 권한을 켜 주세요.' : '지하나 건물 안이면 잠시 뒤 아래로 당겨 다시 받아 보세요.');
+  else if(!geo.pos) txt = '📍 ' + T('위치 확인 중…');
+  else {
+    const w = whereOnRoute(seq, geo.pos);
+    const age = Math.round((Date.now()-geo.at)/1000), acc = Math.round(geo.pos.acc);
+    sub = T('폰 위치 기준 · {s}초 전 · 정확도 ±{m}m', {s:age, m:acc});
+    if(!w || w.d > 1.0){                                                  // 경로에서 1km 넘게 떨어짐
+      const near = w ? seq[w.t < .5 ? w.i : w.i+1].st : seq[0].st;
+      txt = '📍 ' + T('경로에서 {k}km 떨어져 있어요 · 가장 가까운 역 {s}', {k:(w ? w.d : 0).toFixed(1), s:near});
+    } else {
+      pos = w.i + w.t;
+      const a = seq[w.i].st, b = seq[w.i+1].st, left = n - 1 - Math.ceil(pos - 0.15);
+      if(w.t < 0.12 || w.t*w.seg < 0.2) txt = '📍 ' + T('지금 {s}역', {s:a}), pos = w.i;
+      else if(w.t > 0.88 || (1-w.t)*w.seg < 0.2) txt = '📍 ' + T('지금 {s}역', {s:b}), pos = w.i+1;
+      else txt = '📍 ' + T('지금 {a} → {b} 사이 · {b}까지 약 {k}km', {a, b, k:w.toNext.toFixed(1)});
+      if(pos >= n-1) txt = '🏁 ' + T('{s}에 도착했어요', {s:seq[n-1].st});
+      else sub = T('{d}까지 {m}개 역 남음', {d:seq[n-1].st, m:Math.max(1, left)}) + ' · ' + sub;
+    }
+  }
+  const X = i => pad + i*W;
+  let tr = '';
+  for(let i=0; i<n-1; i++) tr += `<span class="pseg" style="left:${X(i)}px;width:${W}px;background:${seq[i+1].x && seq[i].col!==seq[i+1].col ? seq[i].col : seq[i+1].col}"></span>`;
+  if(pos!==null && pos > 0) tr += `<span class="pfill" style="left:${X(0)-5}px;width:${pos*W+10}px"></span>`;
+  const here = pos===null ? -1 : Math.round(pos);
+  seq.forEach((s, i)=>{
+    tr += `<span class="pdot${pos!==null && i <= pos+0.01 ? ' done' : ''}${s.x || i===0 || i===n-1 ? ' x' : ''}" style="left:${X(i)}px;${pos!==null && i<=pos+0.01 ? '' : 'border-color:'+s.col}"></span>`;
+    tr += `<span class="plab${i===here ? ' on' : ''}${s.x || i===0 || i===n-1 ? ' x' : ''}" style="left:${X(i)-4}px">${esc(s.st)}</span>`;
+  });
+  if(pos!==null) tr += `<span class="pme" style="left:${X(pos)}px"></span>`;
+  const old = host.querySelector('.pscroll'), keep = old ? old.scrollLeft : null;
+  host.innerHTML = `<div class="prog"><div class="ptxt">${txt}${sub?`<small>${esc(sub)}</small>`:''}</div>
+    <div class="pscroll"><div class="ptrack" style="width:${X(n-1)+150}px">${tr}</div></div></div>`;
+  const sc = host.querySelector('.pscroll');
+  sc.scrollLeft = pos!==null ? X(pos) - sc.clientWidth/2 : (keep || 0);   // 내 위치가 가운데 오게
+}
+document.addEventListener('click', e=>{ if(e.target.closest('#geoBtn')) startGeo(true); });
+// ----- 역 시간표: 오프라인 공식 시간표(TT)에서 이 역의 하루 전체 출발(운행일 기준, 자정 넘는 열차 포함), 노선·방향별 첫차·막차 -----
+const ttv = {st:null, day:0, line:null};
+function ttDayDeps(st, ymd){
+  const di = ttDay(ymd); if(di < 0) return null;
+  const si = TT.st.indexOf(st); if(si < 0) return [];
+  const at = TT.pt.map(p=>p.indexOf(si));                              // 정차 패턴마다 이 역의 순서
+  const out = [];
+  for(const [l, h, p, m, start, sv] of TT.tr){
+    const k = at[p]; if(k < 0 || k === TT.pt[p].length-1) continue;     // 이 역에 안 서거나 종점(내리기만)
+    if(!((TT.sv[sv] / 2**di) & 1) || /empty train|not in service/i.test(TT.hd[h][0])) continue;   // 회송 열차 뺌
+    out.push({line:TT.ln[l], dest:TT.hd[h][0], via:TT.hd[h][1], next:TT.st[TT.pt[p][k+1]], t:start + TT.tm[m][k]});
+  }
+  return out.sort((a,b)=>a.t-b.t);
+}
+function openTT(st){
+  ttv.st = st; ttv.day = 0; ttv.line = sh.line && linesAt(st).includes(sh.line) ? sh.line : linesAt(st)[0];
+  $('ttview').hidden = false; renderTT(); $('ttview').scrollTop = 0;
+  if(!TT) ttLoad().then(renderTT);
+}
+const hh24 = t => { const m = Math.round(t); return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); };
+function renderTT(){
+  if($('ttview').hidden) return;
+  const st = ttv.st, base = sydneyNow();
+  const y=+base.ymd.slice(0,4), mo=+base.ymd.slice(4,6), d=+base.ymd.slice(6,8), dt = new Date(Date.UTC(y, mo-1, d + ttv.day));
+  const ymd = dt.getUTCFullYear()+String(dt.getUTCMonth()+1).padStart(2,'0')+String(dt.getUTCDate()).padStart(2,'0');
+  const days = [[0,T('오늘')],[1,T('내일')],[2,T('모레')]], lines = linesAt(st);
+  let h = `<header class="bh"><div class="where"><small>${T('역 시간표 · 교통국 공식 시간표')}</small><h1>${esc(st)}</h1></div></header>
+    <div class="when"><div class="seg" role="group">${days.map(([v,l])=>`<button data-ttday="${v}" aria-pressed="${ttv.day===v}">${l}</button>`).join('')}</div><span class="via">${T('{w}요일 기준',{w:wdName(WD[dt.getUTCDay()])})}</span></div>
+    <div class="linechips" style="display:flex;gap:6px;flex-wrap:wrap">${lines.map(L=>`<button class="lchip" data-ttline="${L}" aria-pressed="${L===ttv.line}"><span class="badge" style="background:${LINE_COLOR[L]}">${L==='M1'?T('메트로'):L}</span></button>`).join('')}</div>`;
+  const all = TT ? ttDayDeps(st, ymd) : null;
+  if(!all){ $('ttHost').innerHTML = h + `<div class="sample">${T(TT?'이 날짜의 시간표는 아직 없어요(4주 치만 저장돼요).':'시간표를 받는 중이에요. 인터넷이 연결되면 바로 나와요.')}</div>`; return; }
+  const deps = all.filter(x=>x.line===ttv.line);
+  // 방향 = 이 역 다음 정차역(같은 방향이면 같은 다음 역)
+  const groups = new Map();
+  for(const x of deps){ if(!groups.has(x.next)) groups.set(x.next, []); groups.get(x.next).push(x); }
+  if(!groups.size) h += `<div class="sample">${T('이 날은 이 노선 열차가 이 역에서 출발하지 않아요.')}</div>`;
+  const nowM = ttv.day===0 ? base.mod : -1;
+  for(const [next, list] of [...groups.entries()].sort((a,b)=>b[1].length-a[1].length)){
+    // 행선지: 가장 많은 것은 표시 없음, 나머지는 a·b·c…
+    const cnt = {}; list.forEach(x=>cnt[x.dest]=(cnt[x.dest]||0)+1);
+    const dests = Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]), mark = {}; dests.forEach((d,i)=>mark[d] = i ? 'abcdefghijklmnop'[i-1] : '');
+    const first = list[0], last = list[list.length-1];
+    const byH = new Map(); list.forEach(x=>{ const k = Math.floor(Math.round(x.t)/60); if(!byH.has(k)) byH.set(k, []); byH.get(k).push(x); });
+    h += `<div class="ttgrp"><div class="ttgh"><span class="badge" style="background:${LINE_COLOR[ttv.line]||'var(--muted)'}">${ttv.line==='M1'?T('메트로'):esc(ttv.line)}</span><b>${esc(T('{s} 방면',{s:next}))}</b><small>${T('하루 {n}편',{n:list.length})} · ${dests.slice(0,4).map(d=>esc(destTxt(d))).join(' · ')}${dests.length>4?' …':''}</small></div>
+      <div class="ttfl"><div>${T('첫차')}<b>${hh24(first.t)}</b>${esc(destTxt(first.dest))}</div><div>${T('막차')}<b>${hh24(last.t)}${last.t>=1440?` <small style="font-size:12px">${T('(다음 날)')}</small>`:''}</b>${esc(destTxt(last.dest))}</div></div>
+      ${[...byH.entries()].map(([hr, xs])=>`<div class="tth${nowM>=0 && Math.floor(nowM/60)===hr?' now':''}"><div class="h">${String(hr%24).padStart(2,'0')}</div><div class="m">${xs.map(x=>`<span>${String(Math.round(x.t)%60).padStart(2,'0')}${mark[x.dest]?`<sup>${mark[x.dest]}</sup>`:''}</span>`).join('')}</div></div>`).join('')}
+      <div class="ttleg">${dests.map(d=>`${mark[d]?`<b>${mark[d]}</b> = `:T('표시 없음')+' = '}${esc(destTxt(d))}`).join(' · ')}</div></div>`;
+  }
+  h += `<p class="foot">${T('교통국(TfNSW) 공식 시간표(폰에 저장된 오프라인 시간표, 매주 갱신)예요. 공사·운행 변경은 운행 변경 안내를 확인하세요.')}</p>`;
+  $('ttHost').innerHTML = h;
+  const cur = $('ttHost').querySelector('.tth.now'); if(cur) cur.scrollIntoView({block:'center'});
+}
+$('shTT').addEventListener('click', e=>{ e.stopPropagation(); openTT(sh.st); });
+$('ttBack').addEventListener('click', ()=>{ $('ttview').hidden = true; });
+$('ttHost').addEventListener('click', e=>{
+  const d = e.target.closest('[data-ttday]'); if(d){ ttv.day = +d.dataset.ttday; renderTT(); return; }
+  const l = e.target.closest('[data-ttline]'); if(l){ ttv.line = l.dataset.ttline; renderTT(); }
+});
+// ----- 아래로 당겨서 새로고침(역 상세·경로 화면): 지금 시각 기준으로 열차 시간을 새로 받는다 -----
+function attachPull(el, run, ok=()=>true){
+  let y0 = null, dy = 0, lastY = 0;
+  const ind = document.createElement('div'); ind.className = 'ptr';
+  if(el.id==='sbody') el.before(ind); else el.prepend(ind);              // 역 창은 내용을 다시 그려도 표시가 남게 바깥에
+  const top = () => el.scrollTop <= 2;
+  el.addEventListener('touchstart', e=>{ lastY = e.touches[0].clientY; y0 = ok() && top() ? lastY : null; dy = 0; }, {passive:true});
+  el.addEventListener('touchmove', e=>{
+    const y = e.touches[0].clientY;
+    if(y0===null && ok() && top() && y > lastY) y0 = lastY;              // 스크롤해서 맨 위에 닿은 뒤 계속 당겨도
+    lastY = y;
+    if(y0===null) return; dy = y - y0;
+    if(dy < 0){ ind.style.height = '0'; return; }
+    ind.style.height = Math.min(dy*0.6, 56) + 'px';
+    ind.textContent = dy > 70 ? '↻ '+T('놓으면 새로고침') : '↓ '+T('당겨서 새로고침');
+  }, {passive:true});
+  const end = ()=>{ if(y0===null) return; const go = dy > 70; y0 = null; ind.style.height = '0'; if(go) run(); };
+  el.addEventListener('touchend', end); el.addEventListener('touchcancel', ()=>{ y0 = null; ind.style.height = '0'; });
+}
+function refreshBoard(){
+  const st = board.st; if(!st) return;
+  live.dep[st] = {}; fetchLive(st); renderBoard($('boardHost'), true);
+  toast(T('지금 시각 기준으로 열차 시간을 새로 받아요.'));
+}
+function refreshRoute(){
+  for(const k of Object.keys(live.trip)) if(k.startsWith(od.from+'|'+od.to+'|') && !live.trip[k].raw) delete live.trip[k];
+  const q = queryTime(); delete live.trip[tripKey(q, od.from, od.to)];
+  renderRoute(); if(geo.on) startGeo(true);
+  toast(T('지금 시각 기준으로 열차 시간과 내 위치를 새로 받아요.'));
+}
+attachPull($('boardview'), refreshBoard);
+attachPull($('routeview'), refreshRoute);
+attachPull($('sbody'), ()=>{ live.dep[sh.st] = {}; fetchLive(sh.st); renderSheet(); toast(T('지금 시각 기준으로 열차 시간을 새로 받아요.')); }, ()=>sh.full);
+// ----- 앱을 다시 열면 보던 화면 그대로(역 상세·경로·역 창) + 시간 새로 받기 -----
+let restoredView = false;
+function saveView(){
+  const v = !$('routeview').hidden ? 'route' : !$('boardview').hidden ? 'board' : !sheet.hidden ? 'sheet' : '';
+  store('lastView', JSON.stringify({v, at:Date.now(), from:od.from, to:od.to, st:board.st, sst:sh.st, smode:sh.mode, when:{...when}, routeMode}));
+}
+function restoreView(){
+  let s = null; try{ s = JSON.parse(store('lastView')); }catch(e){}
+  if(!s || Date.now() - s.at > 3*3600000) return;                        // 3시간이 지났으면 처음 화면
+  if(s.from && POS[s.from]) od.from = s.from;
+  if(s.to && POS[s.to] && s.to!==od.from) od.to = s.to;
+  if(s.when) Object.assign(when, s.when);
+  if(s.routeMode) routeMode = s.routeMode;
+  drawPins(); updateReset();
+  if(s.v==='route' && od.from && od.to){ openRoute(); restoredView = true; }
+  else if(s.v==='board' && POS[s.st]){ openBoardPage(s.st); restoredView = true; }
+  else if(s.v==='sheet' && POS[s.sst]){ openSheet(s.sst, s.smode || 'info'); restoredView = true; }
+  else if(od.from && od.to) showRouteOnMap();
+}
+function refreshVisible(){
+  if(!$('routeview').hidden) refreshRoute();
+  else if(!$('boardview').hidden) refreshBoard();
+  else if(!sheet.hidden){ live.dep[sh.st] = {}; fetchLive(sh.st); renderSheet(); }
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ saveView(); stopGeo(); } else { if(geo.on && !$('routeview').hidden) startGeo(true); refreshVisible(); } });
+addEventListener('pagehide', saveView);
+setInterval(saveView, 3000);
 collectStatic();                                     // 화면에 처음부터 있는 문구(버튼·안내)를 기억해 두고 언어에 맞게 바꾼다
 drawMap();
 homeView();
 applyLang(LANG, true);
 renderFavs();
+try{ restoreView(); }catch(e){}
+ttLoad();                                            // 오프라인 시간표(폰에 저장된 것 먼저, 하루 한 번 새 판 확인)
 fetchAlerts();                                       // 앱을 열 때: 실시간 운행 안내를 받아, 아직 안 본 것이 있으면 먼저 보여 준다
 setInterval(fetchAlerts, 10*60000);
 </script>
