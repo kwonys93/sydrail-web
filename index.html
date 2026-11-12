@@ -1,0 +1,1574 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#14212B"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Sydrail"><style>body{margin:0}[hidden]{display:none!important}</style></head><body><title>sydrail 노선도</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 레이아웃: 전체 화면 노선도 → 역을 누르면 [출발·도착·상세] 메뉴.
+   출발 = 아래에서 올라오는 창(끌어 올리면 전체 화면) / 도착 = 경로(소요시간·환승) 화면 / 상세 = 역 출발 보드.
+   펼친 화면(폭 700px 이상)에서는 창·경로 화면을 가운데 760px로 */
+:root{
+  --bg:#EDF1F3; --surface:#FFFFFF; --ink:#14212B; --muted:#5B6B76; --rule:#D5DDE2;
+  --accent:#A85A22; --ok:#1C7A4B; --ok-bg:#E2F2E9; --no:#7D8893; --no-bg:#EEF0F2; --late:#B0471A;
+  --menu:#2A3640; --menu-ink:#F2F5F7; --shadow:0 -6px 24px rgba(20,33,43,.18);
+  --t1:#E8960F; --t2:#0A86BD; --t3:#D4502A; --t4:#1D5FAE; --t5:#B5287E; --t6:#7A4A2A; --t7:#6C7C88; --t8:#0E8A4C; --t9:#C62832; --m1:#11807F;
+  --rdot:#E5322D;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F171D; --surface:#172129; --ink:#E6EDF1; --muted:#93A3AE; --rule:#26343E;
+  --accent:#D9925A; --ok:#4CC38A; --ok-bg:#16352A; --no:#7F8D98; --no-bg:#1D2932; --late:#F0905E;
+  --menu:#E6EDF1; --menu-ink:#14212B; --shadow:0 -6px 24px rgba(0,0,0,.5);
+  --t1:#F2AE3D; --t2:#3DB3E6; --t3:#EE7650; --t4:#5B93E0; --t5:#E060AE; --t6:#B98058; --t7:#9AAAB5; --t8:#35B871; --t9:#F0646C; --m1:#2FB3B0; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F171D; --surface:#172129; --ink:#E6EDF1; --muted:#93A3AE; --rule:#26343E;
+  --accent:#D9925A; --ok:#4CC38A; --ok-bg:#16352A; --no:#7F8D98; --no-bg:#1D2932; --late:#F0905E;
+  --menu:#E6EDF1; --menu-ink:#14212B; --shadow:0 -6px 24px rgba(0,0,0,.5);
+  --t1:#F2AE3D; --t2:#3DB3E6; --t3:#EE7650; --t4:#5B93E0; --t5:#E060AE; --t6:#B98058; --t7:#9AAAB5; --t8:#35B871; --t9:#F0646C; --m1:#2FB3B0; color-scheme:dark }
+
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;overflow:hidden}
+.num{font-family:var(--display);font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* 역을 눌렀을 때 사각형(초점 테두리·안드로이드 누름 표시)은 그리지 않음 — 깜박이는 동그라미만(2026-11-07 사용자 요청) */
+#map .st:focus,#map .st:focus-visible,#map .lab:focus,#map g:focus{outline:none}
+html,body,#map,#map *{-webkit-tap-highlight-color:transparent}
+.badge{font-family:var(--display);font-weight:700;font-size:15px;color:#fff;border-radius:5px;padding:1px 7px;line-height:1.35;white-space:nowrap}
+.via{color:var(--muted);font-size:13px}
+.sample{background:var(--no-bg);border:1px dashed var(--rule);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--muted)}
+.sample b{color:var(--accent)}
+.iconbtn{border:0;background:transparent;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;display:grid;place-items:center;flex:none}
+.iconbtn:hover{background:var(--no-bg)}
+
+/* ===== 노선도 ===== */
+.mapview{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.maphead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;
+  padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:8px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  border-bottom:1px solid var(--rule);background:var(--surface)}
+.maphead{align-items:center;flex-wrap:nowrap;gap:10px}
+.brand{font-family:var(--display);font-weight:700;font-size:24px;line-height:1;flex:none}
+.search{position:relative;flex:1;min-width:0}
+.search input{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:9px 36px 9px 34px;border-radius:10px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);-webkit-appearance:none;appearance:none}
+.search input::placeholder{color:var(--muted)}
+.search input::-webkit-search-cancel-button{display:none}
+.search .qicon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none}
+.search .qclear{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}
+@media (max-width:380px){.brand{display:none}}
+/* 검색 결과·즐겨찾기 목록 (검색창 아래로 펼쳐짐) */
+.sugg{position:absolute;left:0;right:0;z-index:15;max-height:min(70vh,560px);overflow-y:auto;background:var(--surface);border-bottom:1px solid var(--rule);box-shadow:0 10px 24px rgba(20,33,43,.18);
+  padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px));padding-block:4px 8px}
+.sugg h3{margin:10px 8px 4px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.srow{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;border:0;background:transparent;text-align:left;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:15px;min-height:44px}
+.srow:hover,.srow.on{background:var(--no-bg)}
+.srow .sname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow .sname b{color:var(--accent)}
+.srow .slines{display:flex;gap:3px;flex:none}
+.srow .slines .chip{font-size:12px;padding:0 5px}
+.srow .sstar{flex:none;width:36px;height:36px;border:0;background:transparent;font-size:20px;color:var(--muted);cursor:pointer;border-radius:50%}
+.srow .sstar[aria-pressed="true"]{color:var(--accent)}
+.srow .rk{flex:none;color:var(--accent);width:20px;text-align:center}
+.snone{padding:12px 8px;color:var(--muted);font-size:14px}
+/* 언어 고르기 */
+.langbtn{flex:none;border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 10px;font-family:var(--display);font-weight:700;font-size:16px;cursor:pointer}
+.langmenu{position:absolute;right:max(12px,env(safe-area-inset-right,0px));z-index:25;background:var(--surface);border:1px solid var(--rule);border-radius:12px;box-shadow:0 10px 24px rgba(20,33,43,.22);padding:6px;display:flex;flex-direction:column;min-width:160px}
+.langmenu button{display:flex;align-items:center;gap:10px;border:0;background:transparent;text-align:left;padding:10px 12px;border-radius:8px;font-size:15px;cursor:pointer;min-height:44px}
+.langmenu button:hover{background:var(--no-bg)}
+.langmenu button[aria-checked="true"]{font-weight:700;color:var(--accent)}
+.langmenu .flag{font-size:22px;line-height:1}
+.reset{border:1px solid var(--rule);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:700;cursor:pointer;align-self:center}
+#map .dimmed .ln{opacity:.18}
+#map .rt{fill:none;stroke-linecap:round;stroke-linejoin:round}
+#map .rt.halo{stroke:var(--surface);stroke-width:14}
+#map .rt.main{stroke-width:9}
+#map .rt.draw{stroke-dasharray:1 1;stroke-dashoffset:1;animation:rtdraw linear both}
+@keyframes rtdraw{to{stroke-dashoffset:0}}
+#map .rdot{fill:var(--rdot);pointer-events:none;transform-box:fill-box;transform-origin:center;animation:rdot .35s cubic-bezier(.3,1.6,.5,1) both}
+#map .rdot.end{stroke:var(--surface);stroke-width:2}
+@keyframes rdot{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.routebar{position:absolute;left:50%;transform:translateX(-50%);bottom:12px;z-index:3;width:min(560px,calc(100% - 24px));
+  display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px}
+.routebar{cursor:pointer}
+.rsame{margin:6px 0 2px;color:var(--muted);font-size:13px}
+.door{color:var(--ink);font-weight:700}
+.ractions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:18px 0 6px}
+.ract{border:1px solid currentColor;background:transparent;color:inherit;border-radius:999px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer}
+.nearbtn{border:1px solid currentColor;background:transparent;color:inherit;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
+.routebar .rb-t{flex:1;min-width:0;font-size:14px}
+.routebar .rb-t b{font-family:var(--display);font-size:22px;margin-right:6px}
+.routebar .rb-t span{display:block;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.routebar button{border:0;background:var(--ink);color:var(--bg);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+.mapbox{position:relative;flex:1;min-height:0;overflow:hidden}
+#map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;display:block}
+#map.dragging{cursor:grabbing}
+#map .ln{fill:none;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round}
+#map .lab{font-family:var(--body);font-size:13px;fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round;pointer-events:bounding-box;cursor:pointer}
+#map .st{cursor:pointer}
+#map .st .hit{fill:transparent;stroke:none}
+#map .st circle.mk{fill:var(--surface);stroke:var(--ink);stroke-width:2.2}
+#map .st.small circle.mk{stroke:var(--muted);stroke-width:2}
+#map .st.picked circle.mk{stroke:var(--accent);stroke-width:4}
+/* 누른 역: 동그라미를 강조색으로 채우고 바깥 고리가 퍼지며 깜빡인다(그 역 창·메뉴가 열려 있는 동안) */
+#map .st.sel circle.mk{fill:var(--accent);stroke:var(--surface);stroke-width:3;animation:selblink 1s ease-in-out infinite}
+@keyframes selblink{0%,100%{fill:var(--accent)}50%{fill:var(--surface)}}
+#map .st.sel .lab{font-weight:700;fill:var(--accent)}
+#map .selring{fill:none;stroke:var(--accent);stroke-width:3;pointer-events:none;transform-box:fill-box;transform-origin:center;animation:selpulse 1.4s ease-out infinite}
+@keyframes selpulse{0%{transform:scale(.9);opacity:.95}70%{transform:scale(2.1);opacity:0}100%{transform:scale(2.1);opacity:0}}
+#map .pin text{font-family:var(--body);font-size:12px;font-weight:700;fill:#fff;pointer-events:none}
+.mapbox.hasbar .legend,.mapbox.hasbar .zoom{bottom:84px}
+.legend{position:absolute;left:max(12px,env(safe-area-inset-left,0px));bottom:12px;display:flex;flex-wrap:wrap;gap:5px;max-width:calc(100% - 90px);pointer-events:none}
+.chip{font-family:var(--display);font-weight:700;font-size:13px;color:#fff;border-radius:5px;padding:1px 7px}
+.zoom{position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:12px;display:flex;flex-direction:column;gap:6px}
+.zoom button{width:42px;height:42px;border-radius:10px;border:1px solid var(--rule);background:var(--surface);font-size:20px;font-weight:700;cursor:pointer}
+.toast{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);max-width:calc(100% - 32px);background:var(--ink);color:var(--bg);
+  font-size:13px;padding:8px 14px;border-radius:999px;opacity:0;transition:opacity .2s;pointer-events:none;text-align:center;z-index:20}
+.toast.on{opacity:1}
+/* 역 메뉴 (출발·도착·상세) */
+.menu{position:absolute;z-index:4;display:flex;background:var(--menu);color:var(--menu-ink);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.menu::after{content:"";position:absolute;left:var(--ax,50%);bottom:-6px;width:12px;height:12px;background:var(--menu);transform:translateX(-50%) rotate(45deg)}
+.menu.below::after{bottom:auto;top:-6px}
+.menu button{border:0;background:transparent;color:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 16px;cursor:pointer;font-size:14px;font-weight:700;position:relative;z-index:1}
+.menu button+button{border-left:1px solid color-mix(in srgb,var(--menu-ink) 18%,transparent)}
+.menu button span{font-size:18px;line-height:1}
+.menu .mtitle{position:absolute;left:0;right:0;top:-22px;text-align:center;font-size:12px;font-weight:700;color:var(--ink)}
+.menu.below .mtitle{top:auto;bottom:-22px}
+
+/* ===== 아래에서 올라오는 창 ===== */
+.sheet{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:760px;z-index:6;
+  height:calc(100% - env(safe-area-inset-top,0px) - 8px);display:flex;flex-direction:column;
+  background:var(--surface);border-radius:16px 16px 0 0;box-shadow:var(--shadow);transition:transform .25s ease;will-change:transform}
+.sheet.dragging{transition:none}
+.grab{touch-action:none;cursor:grab;padding:6px max(16px,env(safe-area-inset-right,0px)) 4px max(16px,env(safe-area-inset-left,0px));flex:none}
+.handle{display:block;width:44px;height:5px;border-radius:3px;background:var(--rule);margin:2px auto 6px}
+.shead{display:flex;align-items:center;gap:8px}
+.shead .linechips{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto}
+.lchip{border:2px solid transparent;border-radius:999px;padding:2px;background:transparent;cursor:pointer}
+.lchip[aria-pressed="true"]{border-color:var(--ink)}
+.lchip .badge{display:block}
+.sbody{flex:1;min-height:0;overflow:hidden;touch-action:pan-y;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
+.sheet:not(.full) .sbody{touch-action:none}
+.sheet.full .sbody{overflow:auto}
+.lbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;background:var(--lc);border-radius:999px;height:34px;color:#fff;font-size:14px;margin-top:4px;flex:none}
+.lbar .pv{padding-left:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbar .nx{padding-right:12px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbar .cur{background:var(--surface);color:var(--ink);border:3px solid var(--lc);border-radius:999px;padding:4px 18px;font-weight:700;font-size:16px;white-space:nowrap}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;flex:none}
+.cols>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cols>div+div{border-left:1px solid var(--rule);padding-left:14px}
+.cols .d{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;font-size:14px}
+.cols .d em{font-style:normal;color:var(--late);font-weight:700}
+.cols .none{font-size:13px;color:var(--muted)}
+.topreset{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:8px;z-index:2;color:var(--accent);border-color:var(--accent);padding:5px 12px}
+.pbtn{border:1px solid var(--rule);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:700;cursor:pointer}
+.pick{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;background:var(--no-bg);border-radius:10px;padding:8px 12px;flex:none}
+.pick b{color:var(--accent)}
+.dsel{font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);max-width:100%}
+.uphint{font-size:12px;color:var(--muted);text-align:center;flex:none}
+.sheet.full .uphint{display:none}
+
+/* ===== 역 보드 (상세 / 창을 끝까지 올렸을 때) ===== */
+.page{position:fixed;inset:0;overflow:auto;background:var(--bg);z-index:7;
+  padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+#boardHost{display:flex;flex-direction:column;gap:12px}
+#sheetBoard{display:flex;flex-direction:column;gap:12px}
+.back{align-self:flex-start;border:1px solid var(--rule);background:var(--surface);border-radius:999px;padding:5px 14px 5px 10px;font-size:14px;cursor:pointer}
+header.bh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+.where{display:flex;flex-direction:column;gap:2px}
+.where small{color:var(--muted);font-size:12px;letter-spacing:.04em}
+.where h1{margin:0;font-family:var(--display);font-weight:700;font-size:34px;line-height:1;text-wrap:balance}
+.clock{font-size:28px;font-weight:600;color:var(--muted)}
+.bctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:14px}
+.next{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:12px 14px;border-radius:10px;background:var(--ok-bg)}
+.next .k{font-size:13px;color:var(--ok);font-weight:700}
+.next .v{font-family:var(--display);font-size:24px;font-weight:600}
+.controls{display:flex;align-items:center;gap:10px}
+.switch{position:relative;width:44px;height:26px;flex:none}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.switch span{position:absolute;inset:0;border-radius:13px;background:var(--rule);transition:background .15s}
+.switch span::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);transition:transform .15s}
+.switch input:checked+span{background:var(--ok)}
+.switch input:checked+span::after{transform:translateX(18px)}
+.switch input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.board{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:700px){.page .board{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start}}
+.list{display:flex;flex-direction:column;background:var(--surface);border-radius:10px;overflow:hidden;border:1px solid var(--rule)}
+.row{all:unset;box-sizing:border-box;display:grid;grid-template-columns:62px minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--rule);cursor:pointer}
+.row:first-child{border-top:0}
+.row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.row[aria-expanded="true"]{background:var(--no-bg)}
+.row.dim .mid{opacity:.62}
+.mins{font-family:var(--display);font-weight:700;font-size:30px;line-height:1}
+.mins small{font-size:15px;font-weight:600;color:var(--muted);margin-left:1px}
+.mins.now{color:var(--accent);font-size:22px}
+.mid{min-width:0;display:flex;flex-direction:column;gap:2px}
+.top{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.dest{font-weight:700}
+.late{color:var(--late);font-size:13px;font-weight:700}
+.sample.live{border-style:solid;border-color:var(--ok);background:var(--ok-bg);color:var(--ink)}
+.sample.live b{color:var(--ok)}
+.fast{color:var(--ok);font-size:12px;font-weight:700;border:1px solid var(--ok);border-radius:4px;padding:0 5px}
+.tag{font-size:13px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap;text-align:center}
+.tag.yes{background:var(--ok-bg);color:var(--ok)}
+.tag.no{background:var(--no-bg);color:var(--no)}
+.tag.nx{color:var(--muted);font-weight:500}
+.tag .num{font-size:16px}
+.detail{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:14px 16px}
+.list .detail{border:0;border-top:1px solid var(--rule);border-radius:0}
+@media (min-width:700px){.page .detail.side{position:sticky;top:12px}}
+.detail h2{margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.detail .note{margin:0 0 10px;font-size:13px;color:var(--muted)}
+.stops{list-style:none;margin:0;padding:0}
+.stops li{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:center;padding:5px 0;position:relative}
+.stops li::before{content:"";position:absolute;left:8px;top:0;bottom:0;width:3px;background:var(--lc)}
+.stops li:first-child::before{top:50%}
+.stops li:last-child::before{bottom:50%}
+.dot{width:13px;height:13px;border-radius:50%;background:var(--surface);border:3px solid var(--lc);box-sizing:border-box;position:relative;z-index:1;margin-left:3px}
+.stops li.key .dot{width:17px;height:17px;margin-left:1px;background:var(--lc)}
+.stops li.key .sn{font-weight:700}
+.stops li.gap .sn{color:var(--muted);font-size:13px}
+.stops li.gap .dot{opacity:0}
+.st{font-family:var(--display);font-size:19px;font-weight:600}
+.st s{color:var(--muted);font-size:14px;margin-right:6px;font-weight:500}
+.miss{margin-top:10px;font-size:13px;padding:8px 10px;border-radius:8px;background:var(--no-bg)}
+.empty{padding:20px 14px;color:var(--muted)}
+.foot{font-size:12px;color:var(--muted);margin:0}
+
+/* ===== 경로 (도착) ===== */
+.rwrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+#routeHost{display:flex;flex-direction:column;gap:14px}
+.rtop{display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--rule)}
+.rtabs{display:flex;flex:1}
+.rtab{border:0;background:transparent;padding:10px 12px;font-size:16px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.rtab[aria-selected="true"]{color:var(--ink);font-weight:700;border-bottom-color:var(--ink)}
+.odpair{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px;font-weight:700}
+.sum small{display:block;color:var(--muted);font-size:13px}
+.sum .big{font-family:var(--display);font-weight:600;font-size:52px;line-height:1}
+.sum .meta{color:var(--muted);font-size:15px;margin-left:8px}
+.times{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--rule);border-radius:8px;overflow:hidden;background:var(--surface)}
+.times div{padding:10px;text-align:center;font-size:15px}
+.times div+div{border-left:1px solid var(--rule)}
+.times b{font-family:var(--display);font-size:20px;margin-left:6px}
+.legs{display:flex;flex-direction:column}
+.node{display:grid;grid-template-columns:62px 34px minmax(0,1fr);column-gap:10px}
+.node .tm{padding-top:6px;text-align:right}
+.tbox{display:inline-block;font-family:var(--display);font-size:17px;font-weight:600;border:1px solid var(--rule);border-radius:5px;padding:0 6px;background:var(--surface)}
+.tplain{font-family:var(--display);font-size:17px;color:var(--muted)}
+.node .rail{position:relative;display:flex;justify-content:center}
+.node .rail::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:6px;transform:translateX(-50%);background:var(--lc)}
+.node.first .rail::before{top:16px}
+.node.end .rail::before{bottom:auto;height:16px}
+.node.walk .rail::before{width:0;border-left:4px dotted var(--muted);background:none}
+.node .circ{position:relative;z-index:1;width:32px;height:32px;border-radius:50%;background:var(--lc);color:#fff;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px;margin-top:1px}
+.node .circ.off{font-family:var(--body);font-size:11px}
+.node .txt{padding:4px 0 18px;min-width:0}
+.node .sname{font-size:18px;font-weight:700}
+.node .sub{color:var(--muted);font-size:14px}
+.node .walkt{padding:6px 0 18px;font-size:15px}
+.stopsBtn{border:0;background:transparent;padding:6px 0 0;font-size:15px;cursor:pointer}
+.midlist{list-style:none;margin:6px 0 0;padding:0;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.midlist li{display:flex;justify-content:space-between;gap:10px}
+.rempty{padding:24px 0;color:var(--muted)}
+.when{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px}
+.seg{display:flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:6px 12px;font-size:14px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:700}
+.tinput{font:inherit;font-size:15px;padding:5px 8px;border-radius:8px;border:1px solid var(--rule);background:var(--surface);color:var(--ink)}
+.favs{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:8px;right:100px;display:flex;gap:6px;overflow-x:auto;z-index:2;scrollbar-width:none}
+.favs::-webkit-scrollbar{display:none}
+.favchip{flex:none;border:1px solid var(--rule);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.favchip span{color:var(--accent)}
+.favchip.stfav{font-weight:500}
+.favchip.warn{border-color:var(--late);color:var(--late)}
+/* 운행 변경(공사) 안내: 앱을 열 때 새 안내가 있으면 먼저 뜬다 */
+.alerts{position:fixed;inset:0;z-index:30;background:rgba(10,16,20,.55);display:flex;align-items:flex-start;justify-content:center;
+  padding-top:calc(48px + env(safe-area-inset-top,0px));padding-bottom:16px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.acard{background:var(--surface);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.35);width:min(560px,100%);max-height:calc(100% - 8px);display:flex;flex-direction:column;overflow:hidden}
+.acard header{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;border-bottom:1px solid var(--rule)}
+.acard header h2{margin:0;font-size:18px;flex:1}
+.acard .alist{overflow-y:auto;padding:6px 16px 4px}
+.aitem{padding:12px 0;border-bottom:1px solid var(--rule)}
+.aitem:last-child{border-bottom:0}
+.aitem .ahead{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:4px}
+.aitem .ahead b{font-size:15px}
+.aitem .when{font-weight:700;color:var(--late);font-size:14px}
+.aitem p{margin:2px 0 0;font-size:14px;color:var(--muted)}
+.aitem .tag{font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--late);color:#fff}
+.aitem .tag.new{background:var(--accent)}
+.acard footer{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px 14px;border-top:1px solid var(--rule)}
+.acard footer button{border:0;border-radius:999px;padding:9px 18px;font-size:15px;font-weight:700;cursor:pointer;background:var(--ink);color:var(--bg)}
+#rFav[aria-pressed="true"]{color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (prefers-reduced-motion:reduce){#map .rt.draw{stroke-dasharray:none}}
+</style>
+
+<!-- ===== 노선도 ===== -->
+<section class="mapview" id="mapview">
+  <div class="maphead">
+    <span class="brand">Sydrail</span>
+    <div class="search">
+      <span class="qicon" aria-hidden="true">⌕</span>
+      <input id="q" type="search" placeholder="역 이름 검색 · 즐겨찾기" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search"
+        role="combobox" aria-expanded="false" aria-controls="sugg" aria-label="역 이름 검색 (영어)">
+      <button class="qclear" id="qClear" hidden aria-label="검색어 지우기">×</button>
+    </div>
+    <button class="langbtn" id="langBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="langMenu">Lang</button>
+  </div>
+  <div class="sugg" id="sugg" role="listbox" aria-label="검색 결과" hidden></div>
+  <div class="langmenu" id="langMenu" role="menu" hidden>
+    <button role="menuitemradio" data-lang="en"><span class="flag" aria-hidden="true">🇺🇸</span>English</button>
+    <button role="menuitemradio" data-lang="ko"><span class="flag" aria-hidden="true">🇰🇷</span>한국어</button>
+    <button role="menuitemradio" data-lang="zh"><span class="flag" aria-hidden="true">🇨🇳</span>中文</button>
+    <button role="menuitemradio" data-lang="ms"><span class="flag" aria-hidden="true">🇲🇾</span>Bahasa Melayu</button>
+    <button role="menuitemradio" data-lang="ta"><span class="flag" aria-hidden="true">🇮🇳</span>தமிழ்</button>
+    <button role="menuitemradio" data-lang="ja"><span class="flag" aria-hidden="true">🇯🇵</span>日本語</button>
+  </div>
+  <div class="mapbox" id="mapbox">
+    <svg id="map" role="img" aria-label="시드니 기차·메트로 간략 노선도"></svg>
+    <button class="reset topreset" id="resetBtn" hidden aria-label="출발·도착 지우기">⟲ 지우기</button>
+    <div class="favs" id="favs" aria-label="즐겨찾기 경로"></div>
+    <div class="legend" id="legend"></div>
+    <div class="zoom">
+      <button id="zin" aria-label="확대">+</button>
+      <button id="zout" aria-label="축소">−</button>
+      <button id="zreset" aria-label="처음 위치로" style="font-size:14px">⌂</button>
+    </div>
+    <div class="menu" id="menu" hidden>
+      <span class="mtitle" id="mtitle"></span>
+      <button data-act="from"><span>↗</span>출발</button>
+      <button data-act="to"><span>↙</span>도착</button>
+      <button data-act="info"><span>⋯</span>상세</button>
+    </div>
+    <div class="routebar" id="routebar" hidden>
+      <div class="rb-t" id="rbText"></div>
+      <button id="rbOpen">경로 보기</button>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</section>
+
+<!-- ===== 운행 변경(공사) 안내 ===== -->
+<section class="alerts" id="alerts" hidden role="dialog" aria-modal="true" aria-labelledby="aTitle">
+  <div class="acard">
+    <header><h2 id="aTitle">⚠ 운행 변경 안내</h2><button class="iconbtn" id="aX" aria-label="닫기">×</button></header>
+    <div class="alist" id="aList"></div>
+    <footer><button id="aOk">확인</button></footer>
+  </div>
+</section>
+
+<!-- ===== 아래에서 올라오는 창 (출발) ===== -->
+<section class="sheet" id="sheet" hidden aria-label="역 정보">
+  <div class="grab" id="grab">
+    <span class="handle"></span>
+    <div class="shead">
+      <div class="linechips" id="lineChips"></div>
+      <button class="nearbtn" id="shNear" type="button">📍 주변정보</button>
+      <span class="tag yes" id="shMode"></span>
+      <button class="iconbtn" id="shClose" aria-label="닫기">✕</button>
+    </div>
+  </div>
+  <div class="sbody" id="sbody"></div>
+</section>
+
+<!-- ===== 역 보드 (상세) ===== -->
+<section class="page" id="boardview" hidden>
+  <div class="wrap">
+    <button class="back" id="bBack">← 노선도</button>
+    <div id="boardHost"></div>
+  </div>
+</section>
+
+<!-- ===== 경로 (도착) ===== -->
+<section class="page" id="routeview" hidden>
+  <div class="rwrap">
+    <div class="rtop">
+      <div class="rtabs" role="tablist">
+        <button class="rtab" role="tab" data-mode="fast" aria-selected="true">최단시간</button>
+        <button class="rtab" role="tab" data-mode="few" aria-selected="false">최소환승</button>
+      </div>
+      <button class="iconbtn" id="rFav" aria-label="이 경로 즐겨찾기" aria-pressed="false">☆</button>
+      <button class="iconbtn" id="rSwap" aria-label="출발·도착 바꾸기">⇅</button>
+      <button class="iconbtn" id="rClose" aria-label="닫기">✕</button>
+    </div>
+    <div id="routeHost"></div>
+  </div>
+</section>
+
+<script>
+// =====================================================================
+// 0) 공통
+// =====================================================================
+const $ = id => document.getElementById(id);
+const LINE_COLOR = {T1:'var(--t1)',T2:'var(--t2)',T3:'var(--t3)',T4:'var(--t4)',T5:'var(--t5)',T6:'var(--t6)',T7:'var(--t7)',T8:'var(--t8)',T9:'var(--t9)',M1:'var(--m1)'};
+const fmt = new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Sydney',hourCycle:'h23',weekday:'short',
+  year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function sydneyNow(){
+  const p = Object.fromEntries(fmt.formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return {mod:(+p.hour%24)*60+(+p.minute)+(+p.second)/60, weekday:p.weekday, ymd:p.year+p.month+p.day};
+}
+const hhmm = m => { m=((Math.round(m)%1440)+1440)%1440; return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); };
+function hash(s){ let h=2166136261; for(const c of s){ h^=c.charCodeAt(0); h=Math.imul(h,16777619);} return h>>>0; }
+function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } }
+// ===== 언어: 설명 문구만 한국어(기본)·영어·중국어. 역 이름·노선 번호는 언제나 영어 그대로 =====
+// 사전: 한국어 문장 → [영어, 중국어]. 사전에 없는 말(역 이름 등)은 그대로 둔다. {n} 같은 자리는 값으로 채운다.
+const L10N = {"출발":["Depart","出发","Bertolak","புறப்படு","出発"],"도착":["Arrive","到达","Tiba","சேருமிடம்","到着"],"상세":["Details","详情","Butiran","விவரங்கள்","詳細"],"메트로":["Metro","地铁","Metro","மெட்ரோ","メトロ"],"{n}분":["{n} min","{n}分","{n} min","{n} நிமி","{n}分"],"분":["min","分","min","நிமி","分"],"환승 {n}회":["{n} transfer(s)","换乘{n}次","{n} pertukaran","{n} மாற்றம்","乗換{n}回"],"환승 없음":["No transfer","无需换乘","Tiada pertukaran","மாற்றம் இல்லை","乗換なし"],"출발·도착을 지웠어요.":["Cleared origin and destination.","已清除出发和到达。","Stesen asal dan destinasi dikosongkan.","புறப்படும் மற்றும் சேருமிட நிலையங்கள் அழிக்கப்பட்டன.","出発駅と到着駅を消去しました。"],"출발역과 같은 역이에요. 다른 역을 골라 주세요.":["Same as the origin. Pick another station.","与出发站相同，请选择其他车站。","Sama dengan stesen asal. Sila pilih stesen lain.","புறப்படும் நிலையமே இது. வேறு நிலையத்தைத் தேர்ந்தெடுக்கவும்.","出発駅と同じです。別の駅を選んでください。"],"출발역을 노선도에서 누르거나 아래 목록에서 골라 주세요.":["Tap the origin on the map or pick it from the list below.","请在线路图上点击出发站，或在下方列表中选择。","Ketik stesen asal pada peta atau pilih dari senarai di bawah.","வரைபடத்தில் புறப்படும் நிலையத்தைத் தட்டவும் அல்லது கீழே உள்ள பட்டியலில் தேர்ந்தெடுக்கவும்.","路線図で出発駅をタップするか、下のリストから選んでください。"],"{l} 노선":["{l} line","{l}线","Laluan {l}","{l} பாதை","{l}線"],"출발역":["From","出发站","Dari","புறப்படும் நிலையம்","出発駅"],"도착역":["To","到达站","Ke","சேருமிடம்","到着駅"],"역 정보":["Station","车站信息","Stesen","நிலையம்","駅情報"],"지금 열차 없음":["No trains now","暂无列车","Tiada tren sekarang","இப்போது ரயில் இல்லை","現在列車なし"],"{d}행":["to {d}","开往{d}","ke {d}","{d} செல்லும்","{d}行き"],"곧 도착":["Arriving","即将到达","Tiba","வருகிறது","まもなく到着"],"↗ 여기서 출발":["↗ Depart here","↗ 从这里出发","↗ Bertolak dari sini","↗ இங்கிருந்து புறப்படு","↗ ここから出発"],"↙ 여기로 도착":["↙ Arrive here","↙ 到这里","↙ Tiba di sini","↙ இங்கே சேரு","↙ ここに到着"],"도착역 고르기":["Choose destination","选择到达站","Pilih destinasi","சேருமிடத்தைத் தேர்வுசெய்","到着駅を選ぶ"],"고르기":["Choose","选择","Pilih","தேர்வுசெய்","選ぶ"],"또는 노선도에서 역을 눌러 [도착]":["or tap a station on the map → [Arrive]","或在线路图上点击车站 → [到达]","atau ketik stesen pada peta → [Tiba]","அல்லது வரைபடத்தில் நிலையத்தைத் தட்டவும் → [சேருமிடம்]","または路線図で駅をタップ → [到着]"],"출발역 고르기":["Choose origin","选择出发站","Pilih stesen asal","புறப்படும் நிலையத்தைத் தேர்வுசெய்","出発駅を選ぶ"],"▲ 위로 밀면 이 역의 전체 출발 정보가 나와요":["▲ Swipe up for all departures from this station","▲ 上滑查看本站全部发车信息","▲ Leret ke atas untuk semua perlepasan dari stesen ini","▲ இந்த நிலையத்தின் அனைத்து புறப்பாடுகளுக்கும் மேலே இழுக்கவும்","▲ 上にスワイプすると、この駅の全出発情報が表示されます"],"견본 데이터":["Sample data","示例数据","Data contoh","மாதிரி தரவு","サンプルデータ"],"시각은 가짜예요. 교통국 키를 받으면 진짜 시각으로 바뀝니다.":["Times are not real. They will become live once the TfNSW key is added.","时间为虚构，接入交通局密钥后将显示真实时间。","Masa bukan sebenar. Ia akan menjadi masa nyata selepas kunci TfNSW ditambah.","நேரங்கள் உண்மையானவை அல்ல. TfNSW சாவி சேர்க்கப்பட்டதும் நேரடி நேரங்களாக மாறும்.","時刻は架空です。TfNSWのキーを入れると実際の時刻になります。"],"{d} 안 감":["Not to {d}","不去{d}","Tidak ke {d}","{d} செல்லாது","{d}には行きません"],"다음 {s}":["Next {s}","下一站 {s}","Seterusnya {s}","அடுத்து {s}","次は {s}"],"+{n}분 지연":["+{n} min late","晚点{n}分","Lewat {n} min","{n} நிமி தாமதம்","{n}分遅れ"],"가장 빨리 도착":["Fastest arrival","最快到达","Tiba paling cepat","விரைவான வருகை","最速到着"],"{t} 출발":["dep {t}","{t} 出发","bertolak {t}","{t} புறப்பாடு","{t} 発"],"… 중간 역 생략":["… stops omitted","… 省略中间车站","… stesen di antara disembunyikan","… இடைநிலையங்கள் தவிர்க்கப்பட்டன","… 途中駅省略"],"이 열차는 {d}에 서지 않아요.":["This train does not stop at {d}.","本列车不停靠{d}。","Tren ini tidak berhenti di {d}.","இந்த ரயில் {d} இல் நிற்காது.","この列車は{d}に停まりません。"],"가장 빨리 가는 열차는 <b>{a}</b> 출발 {l}, <b>{b}</b> 도착이에요.":["Fastest option: {l} departing <b>{a}</b>, arriving <b>{b}</b>.","最快的是 <b>{a}</b> 出发的 {l}，<b>{b}</b> 到达。","Pilihan terpantas: {l} bertolak <b>{a}</b>, tiba <b>{b}</b>.","விரைவான தேர்வு: {l} <b>{a}</b> புறப்பாடு, <b>{b}</b> வருகை.","最速は <b>{a}</b> 発の {l}、<b>{b}</b> 着です。"],"각 역 도착 예정 시각":["Expected arrival at each stop","各站预计到达时间","Jangkaan ketibaan di setiap stesen","ஒவ்வொரு நிலையத்திலும் எதிர்பார்க்கப்படும் வருகை","各駅の到着予定時刻"],"{n}분 늦어진 시각(취소선은 원래 시각)":["{n} min late (struck-through = scheduled)","晚点{n}分（划线为原定时间）","Lewat {n} min (garis potong = jadual asal)","{n} நிமி தாமதம் (அடிக்கப்பட்டது = திட்டமிட்ட நேரம்)","{n}分遅れ（取り消し線は本来の時刻）"],"정시":["On time","准点","Tepat masa","சரியான நேரம்","定刻"],"역 출발 정보 · 시드니 시각":["Departures · Sydney time","发车信息 · 悉尼时间","Perlepasan · Waktu Sydney","புறப்பாடுகள் · சிட்னி நேரம்","出発案内・シドニー時間"],"실제 시간표·실시간 정보가 아니에요. 교통국 키를 받으면 진짜 시각으로 바뀝니다.":["Not the real timetable or live data. Real times will appear once the TfNSW key is added.","并非真实时刻表或实时信息，接入交通局密钥后将显示真实时间。","Bukan jadual sebenar atau data masa nyata. Masa sebenar akan dipaparkan selepas kunci TfNSW ditambah.","இது உண்மையான கால அட்டவணையோ நேரடித் தரவோ அல்ல. TfNSW சாவி சேர்க்கப்பட்டதும் உண்மையான நேரங்கள் தோன்றும்.","実際の時刻表やリアルタイム情報ではありません。TfNSWのキーを入れると実際の時刻になります。"],"고르지 않음":["None","不选","Tiada","இல்லை","選ばない"],"{d} 가는 열차만":["Only trains to {d}","仅显示开往{d}的列车","Hanya tren ke {d}","{d} செல்லும் ரயில்கள் மட்டும்","{d}方面の列車のみ"],"{d} 가장 빨리":["Fastest to {d}","最快到{d}","Paling cepat ke {d}","{d} க்கு விரைவானது","{d}へ最速"],"{a} 출발 → {b} 도착":["dep {a} → arr {b}","{a} 出发 → {b} 到达","bertolak {a} → tiba {b}","{a} புறப்பாடு → {b} வருகை","{a} 発 → {b} 着"],"{n}분 후":["in {n} min","{n}分后","dalam {n} min","{n} நிமிடத்தில்","{n}分後"],"지금 이 역에 서는 열차가 없어요(견본 시간표 기준).":["No trains stop here right now (sample timetable).","目前没有列车停靠本站（示例时刻表）。","Tiada tren berhenti di sini sekarang (jadual contoh).","இப்போது இங்கே எந்த ரயிலும் நிற்கவில்லை (மாதிரி கால அட்டவணை).","現在この駅に停まる列車はありません（サンプル時刻表）。"],"도착역 목록에는 갈아타지 않고 갈 수 있는 역만 나와요. 갈아타야 하면 노선도에서 [출발] → [도착]으로 경로를 찾으세요.":["The destination list shows only stations reachable without changing trains. For trips with a transfer, use [Depart] → [Arrive] on the map.","到达站列表只显示无需换乘即可到达的车站。需要换乘时，请在线路图上用 [出发] → [到达] 查询路线。","Senarai destinasi hanya menunjukkan stesen yang boleh dicapai tanpa menukar tren. Untuk perjalanan dengan pertukaran, gunakan [Bertolak] → [Tiba] pada peta.","சேருமிடப் பட்டியலில் ரயில் மாறாமல் செல்லக்கூடிய நிலையங்கள் மட்டுமே உள்ளன. மாற்றம் தேவைப்பட்டால் வரைபடத்தில் [புறப்படு] → [சேருமிடம்] பயன்படுத்தவும்.","到着駅リストには乗り換えなしで行ける駅だけが表示されます。乗り換えが必要な場合は、路線図で [出発] → [到着] を使ってください。"],"지금":["Now","现在","Sekarang","இப்போது","今"],"오늘":["Today","今天","Hari ini","இன்று","今日"],"내일":["Tomorrow","明天","Esok","நாளை","明日"],"모레":["In 2 days","后天","Lusa","நாளை மறுநாள்","明後日"],"출발 날짜":["Departure day","出发日期","Hari bertolak","புறப்படும் நாள்","出発日"],"출발 시각":["Departure time","出发时间","Masa bertolak","புறப்படும் நேரம்","出発時刻"],"{w}요일 기준":["{w} timetable","按{w}时刻","Jadual {w}","{w} கால அட்டவணை","{w}ダイヤ"],"운행 변경 {n}":["Service changes {n}","运营变更 {n}","Perubahan perkhidmatan {n}","சேவை மாற்றங்கள் {n}","運行変更 {n}"],"T8 공항선: Central ↔ Revesby 열차 없음":["T8 Airport Line: no trains Central ↔ Revesby","T8 机场线：Central ↔ Revesby 停运","Laluan Lapangan Terbang T8: tiada tren Central ↔ Revesby","T8 விமான நிலையப் பாதை: Central ↔ Revesby ரயில் இல்லை","T8空港線：Central ↔ Revesby 運休"],"토 {a} 04:00 ~ 일 {b} 막차":["Sat {a} 04:00 – Sun {b} last train","周六 {a} 04:00 – 周日 {b} 末班车","Sabtu {a} 04:00 – Ahad {b} tren terakhir","சனி {a} 04:00 – ஞாயிறு {b} கடைசி ரயில்","土 {a} 04:00 〜 日 {b} 終電"],"공항 경유 구간(Green Square·Mascot·공항역) 운행 없음. 대체 버스가 다녀요. 평소보다 30분 이상 더 걸릴 수 있어요.":["No trains via the airport (Green Square, Mascot, airport stations). Replacement buses run. Allow 30+ extra minutes.","经机场区段（Green Square、Mascot、机场站）停运，有替代巴士。可能比平时多花30分钟以上。","Tiada tren melalui lapangan terbang (Green Square, Mascot, stesen lapangan terbang). Bas gantian disediakan. Peruntukkan 30 minit tambahan atau lebih.","விமான நிலைய வழியாக ரயில் இல்லை (Green Square, Mascot, விமான நிலைய நிலையங்கள்). மாற்றுப் பேருந்துகள் இயங்கும். 30 நிமிடத்துக்கு மேல் கூடுதலாக ஆகலாம்.","空港経由区間（Green Square・Mascot・空港駅）は運休。代行バスが運行します。普段より30分以上余分にかかることがあります。"],"T2·T3: Lidcombe ↔ Central 일부 열차 없음":["T2/T3: some trains cancelled Lidcombe ↔ Central","T2/T3：Lidcombe ↔ Central 部分列车停运","T2/T3: sesetengah tren dibatalkan Lidcombe ↔ Central","T2/T3: Lidcombe ↔ Central சில ரயில்கள் ரத்து","T2/T3：Lidcombe ↔ Central 一部運休"],"토 {a} 종일":["All day Sat {a}","周六 {a} 全天","Sepanjang hari Sabtu {a}","சனி {a} முழு நாள்","土 {a} 終日"],"Strathfield에서 T1·T9로 갈아타세요. Inner West 역은 대체 버스.":["Change to T1/T9 at Strathfield. Replacement buses for Inner West stations.","请在 Strathfield 换乘 T1/T9。Inner West 各站有替代巴士。","Tukar ke T1/T9 di Strathfield. Bas gantian untuk stesen Inner West.","Strathfield இல் T1/T9 க்கு மாறவும். Inner West நிலையங்களுக்கு மாற்றுப் பேருந்துகள்.","StrathfieldでT1/T9に乗り換えてください。Inner West各駅は代行バス。"],"메트로 M1: Sydenham ↔ Bankstown 운행 없음":["Metro M1: no service Sydenham ↔ Bankstown","地铁 M1：Sydenham ↔ Bankstown 停运","Metro M1: tiada perkhidmatan Sydenham ↔ Bankstown","மெட்ரோ M1: Sydenham ↔ Bankstown சேவை இல்லை","メトロM1：Sydenham ↔ Bankstown 運休"],"일 {b} 종일":["All day Sun {b}","周日 {b} 全天","Sepanjang hari Ahad {b}","ஞாயிறு {b} முழு நாள்","日 {b} 終日"],"시험 운행 작업. 대체 버스가 다녀요.":["Testing work. Replacement buses run.","测试运行作业，有替代巴士。","Kerja ujian. Bas gantian disediakan.","சோதனைப் பணி. மாற்றுப் பேருந்துகள் இயங்கும்.","試運転作業。代行バスが運行します。"],"내 경로":["My route","我的路线","Laluan saya","என் வழி","マイルート"],"새 안내":["New","新","Baharu","புதியது","新着"],"지금 알려진 운행 변경이 없어요.":["No known service changes right now.","目前没有已知的运营变更。","Tiada perubahan perkhidmatan yang diketahui sekarang.","இப்போது அறியப்பட்ட சேவை மாற்றங்கள் இல்லை.","現在、運行変更の情報はありません。"],"견본 안내예요. 시드니에서 교통국 키를 받으면 진짜 공사·운행 중단 정보로 바뀌어요.":["Sample notices. Real trackwork and disruption info will appear once the TfNSW key is added.","这是示例通知，接入交通局密钥后将显示真实的施工和停运信息。","Notis contoh. Maklumat kerja landasan dan gangguan sebenar akan dipaparkan selepas kunci TfNSW ditambah.","மாதிரி அறிவிப்புகள். TfNSW சாவி சேர்க்கப்பட்டதும் உண்மையான தண்டவாளப் பணி, தடங்கல் தகவல் தோன்றும்.","サンプルのお知らせです。TfNSWのキーを入れると実際の工事・運休情報になります。"],"{n}: 즐겨찾기 역에서 뺐어요.":["{n}: removed from favourite stations.","{n}：已从收藏车站移除。","{n}: dibuang daripada stesen kegemaran.","{n}: பிடித்த நிலையங்களில் இருந்து நீக்கப்பட்டது.","{n}：お気に入り駅から外しました。"],"{n}: 즐겨찾기 역에 넣었어요. 노선도 위쪽에 보여요.":["{n}: added to favourite stations. Shown at the top of the map.","{n}：已加入收藏车站，显示在线路图上方。","{n}: ditambah ke stesen kegemaran. Dipaparkan di bahagian atas peta.","{n}: பிடித்த நிலையங்களில் சேர்க்கப்பட்டது. வரைபடத்தின் மேலே தெரியும்.","{n}：お気に入り駅に追加しました。路線図の上に表示されます。"],"{s} 즐겨찾기":["Favourite {s}","收藏 {s}","Kegemaran {s}","{s} பிடித்தவை","{s} をお気に入り"],"\"{q}\"와 비슷한 역이 없어요. 영어 역 이름으로 쳐 보세요.":["No station like \"{q}\". Try the English station name.","没有与\"{q}\"相似的车站，请输入英文站名。","Tiada stesen seperti \"{q}\". Cuba nama stesen dalam bahasa Inggeris.","\"{q}\" போன்ற நிலையம் இல்லை. ஆங்கில நிலையப் பெயரை முயற்சிக்கவும்.","「{q}」に近い駅がありません。英語の駅名で入力してください。"],"즐겨찾기 역":["Favourite stations","收藏车站","Stesen kegemaran","பிடித்த நிலையங்கள்","お気に入り駅"],"즐겨찾기 경로":["Favourite routes","收藏路线","Laluan kegemaran","பிடித்த வழிகள்","お気に入りルート"],"최근 찾은 역":["Recent","最近搜索","Terkini","சமீபத்தியவை","最近の検索"],"영어로 역 이름을 쳐 보세요. 예: <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. ☆를 누르면 즐겨찾기 역이 돼요.":["Type an English station name, e.g. <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. Tap ☆ to save a favourite station.","请输入英文站名，例如 <b>cen</b> → Central，<b>sj</b> → St James，<b>airport</b>。点 ☆ 可收藏车站。","Taip nama stesen dalam bahasa Inggeris, cth. <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. Ketik ☆ untuk simpan stesen kegemaran.","ஆங்கில நிலையப் பெயரை உள்ளிடவும், எ.கா. <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. பிடித்த நிலையமாகச் சேமிக்க ☆ தட்டவும்.","英語の駅名を入力してください。例：<b>cen</b> → Central、<b>sj</b> → St James、<b>airport</b>。☆をタップするとお気に入り駅になります。"],"즐겨찾기에서 뺐어요.":["Removed from favourites.","已从收藏中移除。","Dibuang daripada kegemaran.","பிடித்தவையில் இருந்து நீக்கப்பட்டது.","お気に入りから外しました。"],"즐겨찾기에 넣었어요. 노선도 위쪽에서 바로 열 수 있어요.":["Added to favourites. Open it from the top of the map.","已收藏，可在线路图上方直接打开。","Ditambah ke kegemaran. Buka dari bahagian atas peta.","பிடித்தவையில் சேர்க்கப்பட்டது. வரைபடத்தின் மேலிருந்து திறக்கலாம்.","お気に入りに追加しました。路線図の上からすぐ開けます。"],"앞으로 3시간 안에 갈 수 있는 열차가 없어요(견본 시간표 기준).":["No trains in the next 3 hours (sample timetable).","未来3小时内没有可乘列车（示例时刻表）。","Tiada tren dalam 3 jam akan datang (jadual contoh).","அடுத்த 3 மணி நேரத்தில் ரயில் இல்லை (மாதிரி கால அட்டவணை).","今後3時間以内に乗れる列車はありません（サンプル時刻表）。"],"{n}개 역({m}분)":["{n} stops ({m} min)","{n}站（{m}分）","{n} stesen ({m} min)","{n} நிலையங்கள் ({m} நிமி)","{n}駅（{m}分）"],"하차":["Off","下车","Turun","இறங்கு","降車"],"여기서 갈아타기":["Change here","在此换乘","Tukar di sini","இங்கே மாறவும்","ここで乗換"],"환승 · 이동 {a}분 + 기다림 {b}분":["Transfer · walk {a} min + wait {b} min","换乘 · 步行{a}分 + 等候{b}分","Pertukaran · berjalan {a} min + tunggu {b} min","மாற்றம் · {a} நிமி நடை + {b} நிமி காத்திருப்பு","乗換・徒歩{a}分＋待ち{b}分"],"견본":["sample","示例","contoh","மாதிரி","サンプル"],"소요시간":["Travel time","所需时间","Masa perjalanan","பயண நேரம்","所要時間"],"{t} 이후 첫 열차":["First train after {t}","{t} 之后的首班车","Tren pertama selepas {t}","{t} க்குப் பின் முதல் ரயில்","{t} 以降の始発"],"곧 출발":["Leaving now","即将出发","Bertolak sekarang","இப்போது புறப்படுகிறது","まもなく出発"],"{n}분 뒤 출발":["Leaves in {n} min","{n}分后出发","Bertolak dalam {n} min","{n} நிமிடத்தில் புறப்படும்","{n}分後に出発"],"시각·환승 시간은 가짜예요. 요금(Opal)과 승강장 번호는 진짜 데이터를 연결한 뒤 넣을게요.":["Times and transfer times are not real. Opal fares and platform numbers will come with live data.","时间和换乘时间为虚构。Opal 票价和站台号将在接入真实数据后加入。","Masa dan masa pertukaran bukan sebenar. Tambang Opal dan nombor platform akan ditambah bersama data masa nyata.","நேரங்களும் மாற்ற நேரங்களும் உண்மையானவை அல்ல. Opal கட்டணமும் நடைமேடை எண்களும் நேரடித் தரவுடன் வரும்.","時刻と乗換時間は架空です。Opal運賃とホーム番号は実データ接続後に入れます。"],"메트로 · 모든 역 정차":["Metro · all stops","地铁 · 站站停","Metro · berhenti di semua stesen","மெட்ரோ · அனைத்து நிலையங்களிலும் நிற்கும்","メトロ・各駅停車"],"Richmond 지선":["Richmond branch","Richmond 支线","Cawangan Richmond","Richmond கிளை","Richmond支線"],"공항 경유":["via Airport","经机场","melalui Lapangan Terbang","விமான நிலையம் வழியாக","空港経由"],"Sydenham 경유":["via Sydenham","经 Sydenham","melalui Sydenham","Sydenham வழியாக","Sydenham経由"],"← 노선도":["← Map","← 线路图","← Peta","← வரைபடம்","← 路線図"],"⚠ 운행 변경 안내":["⚠ Service changes","⚠ 运营变更通知","⚠ Perubahan perkhidmatan","⚠ சேவை மாற்றங்கள்","⚠ 運行変更のお知らせ"],"⟲ 지우기":["⟲ Clear","⟲ 清除","⟲ Kosongkan","⟲ அழி","⟲ 消去"],"경로 보기":["View route","查看路线","Lihat laluan","வழியைப் பார்","ルートを見る"],"최단시간":["Fastest","最快","Terpantas","விரைவானது","最短時間"],"최소환승":["Fewest transfers","最少换乘","Pertukaran paling sedikit","குறைந்த மாற்றங்கள்","乗換最少"],"확인":["OK","确定","OK","சரி","OK"],"검색 결과":["Search results","搜索结果","Hasil carian","தேடல் முடிவுகள்","検索結果"],"검색어 지우기":["Clear search","清除搜索","Kosongkan carian","தேடலை அழி","検索語を消去"],"닫기":["Close","关闭","Tutup","மூடு","閉じる"],"시드니 기차·메트로 간략 노선도":["Simplified Sydney Trains & Metro map","悉尼火车·地铁简图","Peta ringkas Sydney Trains & Metro","சிட்னி ரயில் & மெட்ரோ எளிய வரைபடம்","シドニー電車・メトロ簡易路線図"],"역 이름 검색 (영어)":["Station search (English)","车站搜索（英文）","Cari stesen (bahasa Inggeris)","நிலையத் தேடல் (ஆங்கிலம்)","駅名検索（英語）"],"역 이름 검색 · 즐겨찾기":["Search stations · Favourites","搜索车站 · 收藏","Cari stesen · Kegemaran","நிலையங்களைத் தேடு · பிடித்தவை","駅名検索・お気に入り"],"이 경로 즐겨찾기":["Favourite this route","收藏此路线","Simpan laluan ini sebagai kegemaran","இந்த வழியைப் பிடித்தவையில் சேர்","このルートをお気に入り"],"처음 위치로":["Reset view","回到初始位置","Paparan asal","தொடக்கக் காட்சி","最初の表示に戻す"],"축소":["Zoom out","缩小","Zum keluar","சிறிதாக்கு","縮小"],"출발·도착 바꾸기":["Swap origin and destination","交换出发和到达","Tukar asal dan destinasi","புறப்படும் மற்றும் சேருமிடத்தை மாற்று","出発と到着を入れ替え"],"출발·도착 지우기":["Clear origin and destination","清除出发和到达","Kosongkan asal dan destinasi","புறப்படும் மற்றும் சேருமிடத்தை அழி","出発と到着を消去"],"확대":["Zoom in","放大","Zum masuk","பெரிதாக்கு","拡大"],"언어":["Language","语言","Bahasa","மொழி","言語"],"가장 빠른 경로가 환승도 가장 적어요.":["The fastest route also has the fewest transfers.","最快路线也是换乘最少的路线。","Laluan terpantas juga mempunyai pertukaran paling sedikit.","விரைவான வழியிலேயே குறைந்த மாற்றங்களும் உள்ளன.","最短時間のルートが乗換も最少です。"],"이 경로가 환승도 가장 적어요.":["This route also has the fewest transfers.","此路线也是换乘最少的。","Laluan ini juga mempunyai pertukaran paling sedikit.","இந்த வழியிலேயே குறைந்த மாற்றங்களும் உள்ளன.","このルートが乗換も最少です。"],"내리는 문 왼쪽":["Doors open on the left","左侧开门","Pintu dibuka di sebelah kiri","கதவுகள் இடப்பக்கம் திறக்கும்","左側のドアが開きます"],"내리는 문 오른쪽":["Doors open on the right","右侧开门","Pintu dibuka di sebelah kanan","கதவுகள் வலப்பக்கம் திறக்கும்","右側のドアが開きます"],"내리는 문 방향은 위키백과 역 정보의 승강장 모양으로 추정했어요(공식 자료 아님). 안내 방송을 따르세요.":["Door sides are estimated from platform types in Wikipedia station articles (not official data). Follow on-board announcements.","开门方向根据维基百科车站条目的站台类型推测（非官方资料），请以车内广播为准。","Arah pintu dianggarkan daripada jenis platform dalam artikel stesen Wikipedia (bukan data rasmi). Ikut pengumuman dalam tren.","கதவு திசை விக்கிப்பீடியா நிலையக் கட்டுரைகளில் உள்ள நடைமேடை வகையைக் கொண்டு மதிப்பிடப்பட்டது (அதிகாரப்பூர்வத் தரவு அல்ல). ரயிலில் வரும் அறிவிப்புகளைப் பின்பற்றவும்.","ドアの開く側はWikipediaの駅記事にあるホームの形から推定しています（公式データではありません）。車内放送に従ってください。"],"환승 · 걸어서 약 {a}분":["Transfer · about {a} min walk","换乘 · 步行约{a}分","Pertukaran · kira-kira {a} min berjalan","மாற்றம் · சுமார் {a} நிமி நடை","乗換・徒歩約{a}分"],"기다림 약 {b}분":["wait about {b} min","等候约{b}分","tunggu kira-kira {b} min","சுமார் {b} நிமி காத்திருப்பு","待ち約{b}分"],"경로 공유":["Share route","分享路线","Kongsi laluan","வழியைப் பகிர்","ルートを共有"],"Google 지도에서 보기":["Open in Google Maps","在谷歌地图中查看","Buka dalam Google Maps","Google Maps இல் திற","Googleマップで見る"],"경로를 복사했어요. 원하는 앱에 붙여 넣으세요.":["Route copied. Paste it into any app.","已复制路线，可粘贴到任意应用。","Laluan disalin. Tampal dalam mana-mana aplikasi.","வழி நகலெடுக்கப்பட்டது. எந்தச் செயலியிலும் ஒட்டலாம்.","ルートをコピーしました。好きなアプリに貼り付けてください。"],"주변정보":["Nearby","周边","Sekitar","அருகில்","周辺情報"],"가까운 역이 여러 개예요. 원하는 역을 눌러 주세요.":["Several stations are close together. Tap the one you want.","附近有多个车站，请点选您要的车站。","Beberapa stesen berdekatan. Ketik stesen yang anda mahu.","பல நிலையங்கள் அருகருகே உள்ளன. வேண்டிய நிலையத்தைத் தட்டவும்.","近くに駅がいくつかあります。目的の駅をタップしてください。"],"실시간":["Live","实时","Masa nyata","நேரலை","リアルタイム"],"교통국(TfNSW) 실시간 자료예요. 늦은 시간·승강장이 반영돼요.":["Live data from Transport for NSW, including delays and platforms.","来自新州交通局(TfNSW)的实时数据,含晚点和站台。","Data masa nyata daripada Transport for NSW, termasuk kelewatan dan platform.","Transport for NSW நேரலைத் தரவு, தாமதம் மற்றும் நடைமேடை உட்பட.","NSW州交通局(TfNSW)のリアルタイム情報です。遅れとホームを反映しています。"],"실시간 정보를 불러오는 중이거나 받지 못했어요. 지금은 견본 시각이에요.":["Loading live data (or it is unavailable). Showing sample times for now.","正在加载实时数据(或暂时无法获取),目前显示示例时间。","Sedang memuatkan data masa nyata (atau tidak tersedia). Masa contoh dipaparkan.","நேரலைத் தரவு ஏற்றப்படுகிறது (அல்லது கிடைக்கவில்லை). மாதிரி நேரங்கள் காட்டப்படுகின்றன.","リアルタイム情報を読み込み中(または取得できません)。今はサンプル時刻です。"],"취소":["Cancelled","取消","Dibatalkan","ரத்து","運休"],"{n}번 승강장":["Platform {n}","{n}号站台","Platform {n}","நடைமேடை {n}","{n}番線"],"{a}부터":["from {a}","{a}起","dari {a}","{a} முதல்","{a}から"],"교통국(TfNSW) 실시간 운행 안내예요. 내용은 영어 원문이에요.":["Live service notices from Transport for NSW (original English text).","来自新州交通局(TfNSW)的实时运营通知(英文原文)。","Notis perkhidmatan masa nyata daripada Transport for NSW (teks asal bahasa Inggeris).","Transport for NSW நேரலைச் சேவை அறிவிப்புகள் (ஆங்கில மூல உரை).","NSW州交通局(TfNSW)のリアルタイム運行情報です(英語原文)。"]};
+let LANG = (()=>{ try{ return localStorage.getItem('lang') || 'ko'; }catch(e){ return 'ko'; } })();
+function T(k, v){
+  let s = LANG==='ko' ? k : (L10N[k]?.[{en:0, zh:1, ms:2, ta:3, ja:4}[LANG]] ?? L10N[k]?.[0] ?? k);
+  if(v) for(const x in v) s = s.split('{'+x+'}').join(v[x]);
+  return s;
+}
+const destTxt = d => d==='City Circle' ? d : T('{d}행',{d});
+
+// =====================================================================
+// 실시간(2026-11-12): 교통국(TfNSW) 자료를 Sydrail 중계 서버(Cloudflare Worker, tools/worker.js)로 받는다.
+// 키는 중계 서버에만 있다. 받지 못하면(오프라인 등) 예전처럼 견본 시간표로 보여 준다.
+// =====================================================================
+const LIVE_API = 'https://sydrail-api.kwonys93.workers.dev';
+const STOPID = {"Allawah":"222020","Arncliffe":"10101333","Artarmon":"206410","Ashfield":"213110","Asquith":"207730","Auburn":"10101219","Banksia":"221610","Bankstown":"220010","Barangaroo":"10101513","Bardwell Park":"220710","Beecroft":"211910","Bella Vista":"10101503","Belmore":"219210","Berala":"214120","Berowra":"208110","Beverly Hills":"220910","Bexley North":"10101411","Birrong":"214320","Blacktown":"10101235","Bondi Junction":"202210","Burwood":"213410","Cabramatta":"10101287","Campbelltown":"10101296","Campsie":"10101396","Canley Vale":"216610","Canterbury":"219320","Caringbah":"222910","Carlton":"221810","Carramar":"216330","Castle Hill":"10101506","Casula":"217030","Central":"10101100","Chatswood":"206710","Cheltenham":"211920","Cherrybrook":"2126158","Chester Hill":"216220","Circular Quay":"200020","Clarendon":"275630","Clyde":"214230","Como":"222610","Concord West":"213810","Cronulla":"223020","Crows Nest":"206516","Croydon":"213210","Denistone":"211410","Domestic Airport":"202020","Doonside":"276710","Dulwich Hill":"220310","East Hills":"221320","East Richmond":"275310","Eastwood":"212210","Edgecliff":"202710","Edmondson Park":"217426","Emu Plains":"10101253","Engadine":"10101353","Epping":"212110","Erskineville":"204310","Fairfield":"10101285","Flemington":"214020","Gadigal":"200066","Glenfield":"216710","Gordon":"207210","Granville":"10101227","Green Square":"201710","Guildford":"216110","Gymea":"10101347","Harris Park":"215010","Heathcote":"223320","Hills Showground":"2154392","Holsworthy":"217310","Homebush":"10101216","Hornsby":"207720","Hurlstone Park":"10101394","Hurstville":"10101339","Ingleburn":"256510","International Airport":"202030","Jannali":"222620","Kellyville":"2155382","Killara":"207110","Kings Cross":"201110","Kingsgrove":"220810","Kingswood":"274720","Kirrawee":"223230","Kogarah":"10101336","Lakemba":"219510","Leightonfield":"216310","Leppington":"217933","Leumeah":"256010","Lewisham":"204920","Lidcombe":"214110","Lindfield":"207010","Liverpool":"10101289","Loftus":"10101352","Macarthur":"256030","Macdonaldtown":"201520","Macquarie Fields":"256410","Macquarie Park":"10101509","Macquarie University":"211310","Marayong":"214820","Marrickville":"220410","Martin Place":"10101106","Mascot":"10101330","Meadowbank":"211430","Merrylands":"216010","Milsons Point":"10101111","Minto":"256610","Miranda":"10101348","Mortdale":"222310","Mount Colah":"207910","Mount Druitt":"277010","Mount Kuring-gai":"208010","Mulgrave":"275610","Museum":"10101104","Narwee":"10101414","Newtown":"204210","Normanhurst":"207620","North Ryde":"10101510","North Strathfield":"10101205","North Sydney":"10101112","Norwest":"2153477","Oatley":"222320","Olympic Park":"212710","Padstow":"221110","Panania":"221310","Parramatta":"10101229","Pendle Hill":"214530","Pennant Hills":"10101196","Penrith":"10101252","Penshurst":"10101340","Petersham":"204910","Punchbowl":"219610","Pymble":"10101122","Quakers Hill":"276310","Redfern":"10101421","Regents Park":"214310","Revesby":"221210","Rhodes":"213820","Richmond":"10101245","Riverstone":"10101239","Riverwood":"221010","Rockdale":"10101335","Rooty Hill":"276610","Roseville":"206910","Rouse Hill":"10101501","Schofields":"10101238","Sefton":"216210","Seven Hills":"10101234","St James":"200050","St Leonards":"206520","St Marys":"276010","St Peters":"204410","Stanmore":"204810","Strathfield":"10101206","Summer Hill":"213010","Sutherland":"10101345","Sydenham":"204420","Tallawong":"10101500","Tempe":"10101327","Thornleigh":"10101195","Toongabbie":"10101233","Town Hall":"200070","Turramurra":"10101123","Turrella":"220530","Victoria Cross":"10101512","Villawood":"10101407","Vineyard":"276520","Wahroonga":"207610","Waitara":"10101126","Warrawee":"207420","Warwick Farm":"10101288","Waterfall":"223330","Waterloo":"201721","Waverton":"206020","Wentworthville":"10101231","Werrington":"274710","West Ryde":"211420","Westmead":"214510","Wiley Park":"219520","Windsor":"275620","Wolli Creek":"220510","Wollstonecraft":"206510","Woolooware":"223010","Wynyard":"200080","Yagoona":"219910","Yennora":"216120"};   // 역 이름 → 교통국 역 번호(stop_finder로 찾음, 기차·메트로 역)
+const live = {dep:{}, alerts:null, shown:false};
+const sydMod = iso => { const p = Object.fromEntries(fmt.formatToParts(new Date(iso)).map(x=>[x.type,x.value])); return (+p.hour%24)*60+(+p.minute)+(+p.second)/60; };
+const liveFresh = st => { const x = live.dep[st]; return x && x.events && Date.now()-x.at < 90000 ? x : null; };
+function fetchLive(st){
+  const id = STOPID[st]; if(!id) return;
+  const x = live.dep[st] || {};
+  if(x.loading || (x.at && Date.now()-x.at < 25000) || (x.failAt && Date.now()-x.failAt < 20000)) return;
+  live.dep[st] = {...x, loading:true};
+  fetch(LIVE_API+'/dep?stop='+id).then(r=>r.json()).then(j=>{
+    if(j.error || !Array.isArray(j.events)) throw 0;
+    live.dep[st] = {at:Date.now(), events:j.events};
+    if(!$('routeview').hidden) return;
+    if(!$('boardview').hidden && board.st===st) renderBoard($('boardHost'), true);
+    else if(!sheet.hidden && sh.st===st) renderSheet();
+  }).catch(()=>{ live.dep[st] = {...(live.dep[st]||{}), loading:false, failAt:Date.now()}; });
+}
+// 실시간 출발 하나 → 열차 하나. 역 순서는 같은 노선 운행(SERVICES)에서 행선지 쪽 순서를 빌려 와 뒤 역 시각을 계산한다
+function liveTrip(ev, st, nowMod){
+  const raw = ev.dest || '', via = (raw.match(/ via (.+)$/)||[])[1] || '';
+  const dest = raw.replace(/ via .+$/,'').replace(/ Station.*$/,'').replace(/,.*$/,'').trim();
+  const fix = m => m < nowMod - 720 ? m + 1440 : m > nowMod + 720 ? m - 1440 : m;   // 자정 넘김
+  const dep = fix(sydMod(ev.est || ev.planned)), sched = fix(sydMod(ev.planned));
+  let best = null;
+  for(const svc of SERVICES){
+    if(svc.line !== ev.line) continue;
+    const total = svc.stops[svc.stops.length-1][1];
+    for(const dir of ['f','r']){
+      const seq = dir==='f' ? svc.stops : svc.stops.slice().reverse().map(([n,o])=>[n,total-o]);
+      const i = seq.findIndex(x=>x[0]===st); if(i<0) continue;
+      const j = dest==='City Circle' ? (svc.loop && dir==='f' ? seq.length-1 : -1) : seq.findIndex((x,k)=>k>i && x[0]===dest);
+      if(j<0) continue;
+      const viaOk = !via || seq.slice(i, j+1).some(x=>x[0].includes(via) || via.includes(x[0]));
+      const sc = (viaOk ? 0 : 10) + j - i;
+      if(!best || sc < best.sc) best = {svc, dir, seq, i, j, sc};
+    }
+  }
+  const times = best ? best.seq.slice(best.i, best.j+1).map(([n,o])=>({st:n, t:dep+o-best.seq[best.i][1], s:sched+o-best.seq[best.i][1]})) : [{st, t:dep, s:sched}];
+  return {id:'L'+ev.line+ev.planned+dest, svc:best?.svc || {line:ev.line, via:''}, line:ev.line, dir:best?.dir || 'f', dest:dest || '?',
+    via: via ? 'via '+via : (best?.svc.via || ''), delay:Math.max(0, ev.late||0), times, live:true, platform:ev.platform, cancelled:ev.cancelled};
+}
+function liveNote(st){
+  return liveFresh(st) ? `<div class="sample live"><b>● ${T('실시간')}</b> · ${T('교통국(TfNSW) 실시간 자료예요. 늦은 시간·승강장이 반영돼요.')}</div>`
+    : `<div class="sample"><b>${T('견본 데이터')}</b> · ${T('실시간 정보를 불러오는 중이거나 받지 못했어요. 지금은 견본 시각이에요.')}</div>`;
+}
+// 운행 안내(공사·버스 대체·운행 변경): 중계 서버 /alerts — 날짜가 정해진 공사를 먼저
+const lineCode = n => { const m = (n||'').match(/^(T[1-9]|M1)\b/); return m ? m[1] : /metro/i.test(n||'') ? 'M1' : null; };
+function alertWhen(ws){
+  const f = iso => { const d = new Date(iso), p = Object.fromEntries(fmt.formatToParts(d).map(x=>[x.type,x.value]));
+    return `${+p.month}/${+p.day}(${wdName(p.weekday)}) ${p.hour}:${p.minute}`; };
+  return ws.slice(0,3).map(w=>w.to ? `${f(w.from)} ~ ${f(w.to)}` : T('{a}부터',{a:f(w.from)})).join(' · ');
+}
+function fetchAlerts(){
+  fetch(LIVE_API+'/alerts').then(r=>r.json()).then(j=>{
+    if(!Array.isArray(j.alerts)) throw 0;
+    live.alerts = j.alerts.filter(a=>!a.general).map(a=>{
+      const lines = LINE_ORDER.filter(L=>a.lines.some(n=>lineCode(n)===L));
+      return lines.length ? {id:a.id, lines, title:a.title, when:alertWhen(a.windows), body:a.text, works:a.works, live:true} : null;
+    }).filter(Boolean).slice(0, 40);
+    renderFavs();
+    if(!live.shown){ live.shown = true; openAlerts(true); }
+  }).catch(()=>{});
+}
+const WDN = {ko:{Sun:'일',Mon:'월',Tue:'화',Wed:'수',Thu:'목',Fri:'금',Sat:'토'},
+  en:{Sun:'Sunday',Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday'},
+  zh:{Sun:'周日',Mon:'周一',Tue:'周二',Wed:'周三',Thu:'周四',Fri:'周五',Sat:'周六'},
+  ms:{Sun:'Ahad',Mon:'Isnin',Tue:'Selasa',Wed:'Rabu',Thu:'Khamis',Fri:'Jumaat',Sat:'Sabtu'},
+  ta:{Sun:'ஞாயிறு',Mon:'திங்கள்',Tue:'செவ்வாய்',Wed:'புதன்',Thu:'வியாழன்',Fri:'வெள்ளி',Sat:'சனி'},
+  ja:{Sun:'日曜',Mon:'月曜',Tue:'火曜',Wed:'水曜',Thu:'木曜',Fri:'金曜',Sat:'土曜'}};
+const wdName = w => WDN[LANG][w];
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// =====================================================================
+// 1) 견본 운행 계획 — 진짜 데이터(교통국 시간표·실시간)가 오면 이 부분을 교체
+//    stops: [역, 첫 역 출발 후 몇 분]. h: 배차 간격 [출퇴근, 평일 낮, 저녁·주말], null = 그 시간대 운행 안 함
+// =====================================================================
+// mk: 역 목록 → [역, 첫 역 출발 후 몇 분]. ['역', 분]은 앞 역에서 걸리는 시간을 직접 지정(급행 구간)
+function mk(list, hop=2.5){ let t = 0; return list.map((x,i)=>{ const [n,h] = Array.isArray(x) ? x : [x, hop]; if(i) t += h; return [n, Math.round(t)]; }); }
+const LOOP_STOPS = ['Central','Museum','St James','Circular Quay','Wynyard','Town Hall'];
+const NS_STOPS = ['Milsons Point','North Sydney','Waverton','Wollstonecraft','St Leonards','Artarmon','Chatswood','Roseville','Lindfield','Killara','Gordon'];
+const UPPER_NS = ['Pymble','Turramurra','Warrawee','Wahroonga','Waitara','Hornsby'];
+const ILLA = ['Sydenham','Tempe','Wolli Creek','Arncliffe','Banksia','Rockdale','Kogarah','Carlton','Allawah','Hurstville','Penshurst','Mortdale','Oatley','Como','Jannali','Sutherland'];
+const EASTERN = ['Central','Town Hall','Martin Place','Kings Cross','Edgecliff','Bondi Junction'];
+const T8_SOUTH = ['Macarthur','Campbelltown','Leumeah','Minto','Ingleburn','Macquarie Fields','Glenfield','Holsworthy','East Hills','Panania','Revesby','Padstow','Riverwood','Narwee','Beverly Hills','Kingsgrove','Bexley North','Bardwell Park','Turrella','Wolli Creek'];
+const M1 = mk(['Tallawong',['Rouse Hill',3],['Kellyville',2],['Bella Vista',3],['Norwest',2],['Hills Showground',3],['Castle Hill',2],['Cherrybrook',3],['Epping',5],['Macquarie University',4],['Macquarie Park',2],['North Ryde',2],['Chatswood',6],['Crows Nest',3],['Victoria Cross',2],['Barangaroo',3],['Martin Place',2],['Gadigal',2],['Central',2],['Waterloo',2],['Sydenham',4],['Marrickville',3],['Dulwich Hill',2],['Hurlstone Park',2],['Canterbury',2],['Campsie',2],['Belmore',2],['Lakemba',2],['Wiley Park',2],['Punchbowl',2],['Bankstown',3]]);
+const SERVICES = [
+  {id:'M1', line:'M1', h:[4,5,10], phase:1, via:'메트로 · 모든 역 정차', stops:M1},
+  {id:'T1', line:'T1', h:[6,10,15], phase:2, via:'Western & North Shore', stops:mk(['Emu Plains','Penrith','Kingswood','Werrington','St Marys','Mount Druitt','Rooty Hill','Doonside','Blacktown','Seven Hills','Toongabbie','Pendle Hill','Wentworthville','Westmead','Parramatta',['Granville',5],['Lidcombe',5],['Strathfield',5],['Redfern',10],'Central','Town Hall','Wynyard',...NS_STOPS,...UPPER_NS,'Asquith','Mount Colah','Mount Kuring-gai','Berowra'])},
+  {id:'T1R', line:'T1', h:[15,30,30], phase:7, via:'Richmond 지선', stops:mk(['Richmond','East Richmond','Clarendon','Windsor','Mulgrave','Vineyard','Riverstone','Schofields','Quakers Hill','Marayong','Blacktown',['Seven Hills',3],['Parramatta',9],['Strathfield',13],['Redfern',10],'Central','Town Hall','Wynyard','Milsons Point','North Sydney',['Chatswood',9],'Roseville','Lindfield','Killara','Gordon',...UPPER_NS])},
+  {id:'T2', line:'T2', h:[8,15,30], phase:3, loop:true, via:'Leppington & Inner West', stops:mk(['Leppington','Edmondson Park','Glenfield','Casula','Liverpool','Warwick Farm','Cabramatta','Canley Vale','Fairfield','Yennora','Guildford','Merrylands','Granville','Clyde','Auburn','Lidcombe','Flemington','Homebush','Strathfield','Burwood','Croydon','Ashfield','Summer Hill','Lewisham','Petersham','Stanmore','Newtown','Macdonaldtown','Redfern',...LOOP_STOPS], 2.2)},
+  {id:'T3', line:'T3', h:[10,15,30], phase:5, loop:true, via:'Liverpool & Inner West', stops:mk(['Liverpool','Warwick Farm','Cabramatta','Carramar','Villawood','Leightonfield','Chester Hill','Sefton','Regents Park','Berala','Lidcombe',['Strathfield',6],['Burwood',3],['Redfern',9],...LOOP_STOPS])},
+  {id:'T4C', line:'T4', h:[6,15,15], phase:0, via:'Eastern Suburbs & Illawarra', stops:mk(['Cronulla','Woolooware','Caringbah','Miranda','Gymea','Kirrawee',...ILLA.slice().reverse(),['Redfern',5],...EASTERN])},
+  {id:'T4W', line:'T4', h:[8,15,30], phase:4, via:'Eastern Suburbs & Illawarra', stops:mk(['Waterfall','Heathcote','Engadine','Loftus',...ILLA.slice().reverse(),['Redfern',5],...EASTERN])},
+  {id:'T5', line:'T5', h:[15,30,30], phase:6, via:'Cumberland', stops:mk(['Schofields','Quakers Hill','Marayong','Blacktown','Seven Hills','Toongabbie','Pendle Hill','Wentworthville','Westmead','Parramatta','Harris Park',['Merrylands',4],'Guildford','Yennora','Fairfield','Canley Vale','Cabramatta','Warwick Farm','Liverpool','Casula','Glenfield','Edmondson Park','Leppington'])},
+  {id:'T6', line:'T6', h:[15,20,30], phase:8, via:'Lidcombe & Bankstown', stops:mk(['Lidcombe','Berala','Regents Park','Birrong','Yagoona','Bankstown'])},
+  {id:'T7', line:'T7', h:[10,20,30], phase:9, via:'Olympic Park', stops:mk(['Lidcombe',['Olympic Park',5]])},
+  {id:'T8A', line:'T8', h:[5,15,15], phase:4, loop:true, via:'공항 경유', stops:mk([...T8_SOUTH,'International Airport','Domestic Airport','Mascot','Green Square',...LOOP_STOPS])},
+  {id:'T8S', line:'T8', h:[null,15,15], phase:11, loop:true, via:'Sydenham 경유', stops:mk([...T8_SOUTH,'Tempe','Sydenham','St Peters','Erskineville','Redfern',...LOOP_STOPS])},
+  {id:'T9', line:'T9', h:[8,15,30], phase:10, via:'Northern', stops:mk(['Hornsby','Normanhurst','Thornleigh','Pennant Hills','Beecroft','Cheltenham','Epping','Eastwood','Denistone','West Ryde','Meadowbank','Rhodes','Concord West','North Strathfield','Strathfield','Burwood',['Redfern',9],'Central','Town Hall','Wynyard',...NS_STOPS])},
+];
+const FAV_DEST = {'St James':'Mascot', 'Mascot':'St James'};   // 사용자가 자주 가는 구간
+// 내리는 문 방향(위키백과 역 정보의 승강장 모양으로 추정, 선로 2개인 역만). R=오른쪽 L=왼쪽
+const DOOR = {"Artarmon":"R","Asquith":"L","Bankstown":"R","Bardwell Park":"R","Beecroft":"R","Bella Vista":"R","Belmore":"R","Berala":"R","Beverly Hills":"R","Bexley North":"R","Birrong":"R","Bondi Junction":"R","Cabramatta":"L","Canley Vale":"L","Canterbury":"L","Caringbah":"R","Carramar":"R","Casula":"L","Cherrybrook":"R","Chester Hill":"R","Circular Quay":"L","Clarendon":"L","Como":"R","Domestic Airport":"L","Dulwich Hill":"R","Edgecliff":"R","Edmondson Park":"R","Emu Plains":"L","Engadine":"L","Fairfield":"L","Green Square":"L","Guildford":"L","Gymea":"R","Heathcote":"L","Hurlstone Park":"L","Ingleburn":"L","International Airport":"L","Jannali":"L","Kellyville":"L","Killara":"R","Kings Cross":"R","Kingsgrove":"R","Kirrawee":"R","Lakemba":"R","Leightonfield":"L","Leumeah":"L","Loftus":"L","Macdonaldtown":"R","Macquarie Fields":"L","Macquarie Park":"R","Macquarie University":"R","Marayong":"R","Marrickville":"L","Mascot":"L","Meadowbank":"L","Merrylands":"L","Milsons Point":"R","Minto":"L","Miranda":"R","Mortdale":"R","Mount Colah":"R","Mount Kuring-gai":"R","Mulgrave":"R","Museum":"L","Narwee":"R","Newtown":"R","Normanhurst":"L","North Ryde":"R","Oatley":"R","Padstow":"R","Panania":"R","Petersham":"R","Punchbowl":"R","Pymble":"R","Quakers Hill":"R","Regents Park":"R","Richmond":"R","Riverstone":"L","Riverwood":"R","Roseville":"R","Rouse Hill":"L","Schofields":"R","Sefton":"R","St James":"R","St Leonards":"L","Tallawong":"R","Turramurra":"R","Turrella":"R","Villawood":"R","Wahroonga":"R","Waitara":"R","Warrawee":"R","Warwick Farm":"L","Waterfall":"R","Waverton":"L","Werrington":"L","Wiley Park":"L","Wollstonecraft":"L","Woolooware":"R","Yagoona":"R","Yennora":"L"};
+const XFER = 3;                                                 // 갈아탈 때 걸리는 시간(분, 견본)
+const DELAYS = [0,0,0,1,0,2,0,0,3,0];
+const LINE_ORDER = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','M1'];
+
+function headway(svc, t, weekend){
+  const m = ((t%1440)+1440)%1440;
+  if(m < 300) return undefined;                                 // 새벽 1~5시 운행 없음(견본)
+  if(weekend || m<360 || m>=1140) return svc.h[2];
+  return (m>=420&&m<570)||(m>=960&&m<1110) ? svc.h[0] : svc.h[1];
+}
+let tripCache = {key:null, trips:[]};
+function getTrips(now){
+  const key = now.ymd + ':' + Math.floor(now.mod);
+  if(tripCache.key === key) return tripCache.trips;
+  const weekend = now.weekday==='Sat'||now.weekday==='Sun';
+  const trips = [];
+  for(const svc of SERVICES){
+    const total = svc.stops[svc.stops.length-1][1];
+    for(const dir of ['f','r']){
+      const seq = dir==='f' ? svc.stops : svc.stops.slice().reverse().map(([n,o])=>[n,total-o]);
+      const dest = dir==='f' && svc.loop ? 'City Circle' : seq[seq.length-1][0];
+      const phase = svc.phase + (dir==='r'?2:0);
+      let t = Math.floor(now.mod) - 150;
+      while(t < now.mod + 240){
+        const h = headway(svc, t, weekend);
+        if(h === undefined){ t += 10; continue; }
+        if(h === null){ t += 5; continue; }
+        t = Math.ceil((t-phase)/h)*h + phase;
+        const delay = svc.line==='M1' ? 0 : DELAYS[hash(svc.id+dir+now.ymd+':'+t) % DELAYS.length];
+        trips.push({id:svc.id+dir+t, svc, line:svc.line, dir, dest, via:svc.via, delay,
+          times: seq.map(([n,o])=>({st:n, t:t+o+delay, s:t+o}))});
+        t += h;
+      }
+    }
+  }
+  tripCache = {key, trips};
+  return trips;
+}
+const ALL_STATIONS = [...new Set(SERVICES.flatMap(s=>s.stops.map(x=>x[0])))].sort();
+const linesAt = st => LINE_ORDER.filter(L => SERVICES.some(s=>s.line===L && s.stops.some(x=>x[0]===st)));
+
+// ----- 한 역의 출발 목록 -----
+function departuresAt(now, st, dest){
+  const out = [];
+  if(!now.planned) fetchLive(st);
+  const lv = !now.planned && liveFresh(st);
+  if(lv){
+    for(const ev of lv.events){
+      const tr = liveTrip(ev, st, now.mod), dep = tr.times[0].t, away = dep - now.mod;
+      if(away < -0.5 || away > 90) continue;
+      const j = dest ? tr.times.findIndex((x,k)=>k>0 && x.st===dest) : -1;
+      out.push({id:tr.id, trip:tr, i:0, dep, away, goes:j>0 && !tr.cancelled, targetAt:j>0?tr.times[j].t:null});
+    }
+    out.sort((a,b)=>a.dep-b.dep);
+    if(dest){ const best = out.filter(d=>d.goes).reduce((a,d)=>!a||d.targetAt<a.targetAt?d:a,null); if(best) best.fastest = true; }
+    return out;
+  }
+  for(const tr of getTrips(now)){
+    const i = tr.times.findIndex(x=>x.st===st);
+    if(i<0 || i===tr.times.length-1) continue;
+    const dep = tr.times[i].t, away = dep - now.mod;
+    if(away < -0.4 || away > 75) continue;
+    const j = dest ? tr.times.findIndex((x,k)=>k>i && x.st===dest) : -1;
+    out.push({id:tr.id, trip:tr, i, dep, away, goes:j>0, targetAt:j>0?tr.times[j].t:null});
+  }
+  out.sort((a,b)=>a.dep-b.dep);
+  if(dest){ const best = out.filter(d=>d.goes).reduce((a,d)=>!a||d.targetAt<a.targetAt?d:a,null); if(best) best.fastest = true; }
+  return out;
+}
+// 이 역에서 갈아타지 않고 갈 수 있는 역
+function directDests(st){
+  const set = new Set();
+  for(const s of SERVICES){ const i = s.stops.findIndex(x=>x[0]===st); if(i<0) continue; s.stops.forEach((x,k)=>{ if(k!==i) set.add(x[0]); }); }
+  return [...set].sort();
+}
+
+// ----- 경로 찾기: 라운드마다 열차를 하나씩 더 타 보며 각 역 최단 도착을 구함(최대 4번 탑승) -----
+function doorSide(trip, i){
+  const st = trip.times[i].st;
+  if(!trip.times[i+1] || st===trip.dest) return null;
+  return DOOR[st] || null;
+}
+function findRoutes(now, from, to){
+  const trips = getTrips(now), K = 4;
+  const lab = [{[from]:{t:now.mod}}];
+  for(let k=1; k<=K; k++){
+    const prev = lab[k-1], cur = Object.assign({}, prev);
+    for(const tr of trips){
+      let board = -1;
+      for(let i=0; i<tr.times.length; i++){
+        const {st, t} = tr.times[i];
+        if(board >= 0 && (!cur[st] || t < cur[st].t)) cur[st] = {t, trip:tr, bi:board, ai:i, pk:k-1, bst:tr.times[board].st};
+        const p = prev[st];
+        if(board < 0 && p && i < tr.times.length-1 && p.t + (k===1 ? 0 : XFER) <= t) board = i;
+      }
+    }
+    lab.push(cur);
+  }
+  const rebuild = k => {
+    const legs = []; let e = lab[k][to];
+    while(e && e.trip){ legs.unshift(e); e = lab[e.pk][e.bst]; }
+    return legs.length ? legs : null;
+  };
+  let fast = null, fastT = Infinity, few = null;
+  for(let k=1; k<=K; k++){
+    const e = lab[k][to]; if(!e || !e.trip) continue;
+    if(!few) few = rebuild(k);
+    if(e.t < fastT){ fastT = e.t; fast = rebuild(k); }
+  }
+  return {fast, few};
+}
+
+// =====================================================================
+// 2) 노선도 (견본: 직접 그린 간략도, 축척·모든 역 아님)
+// =====================================================================
+// 역 위치: run(이름들, 시작 x, 시작 y, x 간격, y 간격, 라벨 위치)
+const ST = [];
+function run(names, x0, y0, dx, dy, lab){ names.forEach((n,i)=>ST.push([n, x0+i*dx, y0+i*dy, lab])); }
+function at(n, x, y, lab){ ST.push([n, x, y, lab]); }
+// 시내
+at('Central',1030,1110,'l'); at('Town Hall',960,1030,'l'); at('Wynyard',960,920,'l'); at('Circular Quay',1030,880,'b');
+at('St James',1100,920,'r'); at('Museum',1100,1030,'r'); at('Martin Place',1030,950,'t'); at('Gadigal',1030,1040,'r');
+at('Kings Cross',1180,950,'b'); at('Edgecliff',1250,950,'t'); at('Bondi Junction',1320,950,'b');
+// North Shore (T1·T9) · 메트로 북쪽
+run(['Milsons Point','North Sydney','Waverton','Wollstonecraft','St Leonards','Artarmon','Chatswood','Roseville','Lindfield','Killara','Gordon','Pymble','Turramurra','Warrawee','Wahroonga','Waitara','Hornsby','Asquith','Mount Colah','Mount Kuring-gai','Berowra'],960,860,0,-28,'r');
+at('Crows Nest',870,790,'l'); at('Victoria Cross',870,860,'l'); at('Barangaroo',870,950,'l');
+at('Epping',780,692,'tl'); at('Macquarie University',825,692,'dl'); at('Macquarie Park',865,692,'dl'); at('North Ryde',905,692,'ul');
+run(['Cherrybrook','Castle Hill','Hills Showground','Norwest','Bella Vista','Kellyville','Rouse Hill','Tallawong'],700,655,0,-32,'l');
+// T9 Northern
+run(['Normanhurst','Thornleigh','Pennant Hills','Beecroft','Cheltenham'],930,459,-30,46.7,'l');
+at('Eastwood',752,725,'l'); at('Denistone',724,758,'l'); at('West Ryde',696,791,'l'); at('Meadowbank',668,824,'l');
+at('Rhodes',650,870,'l'); at('Concord West',650,965,'l'); at('North Strathfield',650,1060,'l');
+// Inner West · Main West
+at('Redfern',990,1160,'tl');
+run(['Macdonaldtown','Newtown','Stanmore','Petersham','Lewisham','Summer Hill','Ashfield','Croydon','Burwood'],930,1160,-30,0,'dl');
+at('Strathfield',650,1160,'ul'); at('Homebush',620,1160,'ul'); at('Flemington',590,1160,'ul'); at('Lidcombe',560,1160,'dr');
+at('Auburn',520,1160,'ul'); at('Clyde',480,1160,'ul'); at('Granville',440,1160,'ul'); at('Olympic Park',540,1090,'l');
+at('Harris Park',400,1160,'ul');
+run(['Parramatta','Westmead','Wentworthville','Pendle Hill','Toongabbie','Seven Hills','Blacktown','Doonside','Rooty Hill','Mount Druitt','St Marys','Werrington','Kingswood','Penrith','Emu Plains'],368,1160,-32,0,'dl');
+run(['Marayong','Quakers Hill','Schofields','Riverstone','Vineyard','Mulgrave','Windsor','Clarendon','East Richmond','Richmond'],176,1125,0,-32,'r');
+// 남서부 (T2·T3·T5·T6)
+run(['Berala','Regents Park','Sefton','Chester Hill','Leightonfield'],560,1195,0,35,'l');
+at('Villawood',540,1368,'r'); at('Carramar',500,1385,'b');
+run(['Merrylands','Guildford','Yennora','Fairfield','Canley Vale'],440,1195,0,35,'l');
+at('Cabramatta',440,1395,'l'); at('Warwick Farm',440,1430,'l'); at('Liverpool',440,1465,'l'); at('Casula',490,1495,'l');
+at('Glenfield',540,1530,'r'); at('Edmondson Park',500,1575,'l'); at('Leppington',460,1620,'l');
+at('Birrong',605,1265,'r'); at('Yagoona',640,1300,'l');
+// 메트로 남서부 · Illawarra · 공항
+run(['Marrickville','Dulwich Hill','Hurlstone Park','Canterbury','Campsie','Belmore','Lakemba','Wiley Park'],958,1330,-32,0,'ul');
+at('Punchbowl',702,1330,'b');
+at('Bankstown',670,1330,'l');
+at('Waterloo',1030,1200,'r'); at('Green Square',1100,1185,'r'); at('Mascot',1120,1250,'r'); at('Domestic Airport',1120,1310,'r'); at('International Airport',1090,1360,'r');
+at('Erskineville',990,1215,'l'); at('St Peters',990,1255,'l'); at('Sydenham',990,1330,'r'); at('Tempe',990,1375,'l'); at('Wolli Creek',990,1420,'tl');
+run(['Arncliffe','Banksia','Rockdale','Kogarah','Carlton','Allawah','Hurstville','Penshurst','Mortdale','Oatley','Como','Jannali','Sutherland'],990,1450,0,30,'r');
+run(['Kirrawee','Gymea','Miranda','Caringbah','Woolooware','Cronulla'],1015,1840,25,30,'r');
+run(['Loftus','Engadine','Heathcote','Waterfall'],965,1840,-25,30,'l');
+// T8 남쪽
+run(['Turrella','Bardwell Park','Bexley North','Kingsgrove','Beverly Hills','Narwee','Riverwood','Padstow','Revesby','Panania','East Hills'],930,1450,-30,0,'dl');
+at('Holsworthy',600,1450,'l');
+run(['Macquarie Fields','Ingleburn','Minto','Leumeah','Campbelltown','Macarthur'],540,1565,0,32,'r');
+
+const POS = Object.fromEntries(ST.map(s=>[s[0],[s[1],s[2]]]));
+const coord = n => n[0]==='@' ? n.slice(1).split(',').map(Number) : POS[n];
+
+// 노선 그림: 지나가는 역을 모두 순서대로 ('@x,y'는 꺾이는 점). 같은 구간을 여러 노선이 지나면 자동으로 나란히 그림
+const LOOP = ['Central','Museum','St James','@1100,880','Circular Quay','@960,880','Wynyard','Town Hall','Central'];
+const IW = ['Central','Redfern','Macdonaldtown','Newtown','Stanmore','Petersham','Lewisham','Summer Hill','Ashfield','Croydon','Burwood','Strathfield'];
+const WEST = ['Strathfield','Homebush','Flemington','Lidcombe','Auburn','Clyde','Granville','Harris Park','Parramatta','Westmead','Wentworthville','Pendle Hill','Toongabbie','Seven Hills','Blacktown','Doonside','Rooty Hill','Mount Druitt','St Marys','Werrington','Kingswood','Penrith','Emu Plains'];
+const NSHORE = ['Wynyard','@960,880','Milsons Point','North Sydney','Waverton','Wollstonecraft','St Leonards','Artarmon','Chatswood','Roseville','Lindfield','Killara','Gordon'];
+const SOUTHW = ['Merrylands','Guildford','Yennora','Fairfield','Canley Vale','Cabramatta','Warwick Farm','Liverpool','Casula','Glenfield','Edmondson Park','Leppington'];
+const ILL = ['Central','Redfern','Erskineville','St Peters','Sydenham','Tempe','Wolli Creek'];
+const DRAW = [
+  {id:'T1', path:['Berowra','Mount Kuring-gai','Mount Colah','Asquith','Hornsby','Waitara','Wahroonga','Warrawee','Turramurra','Pymble',...NSHORE.slice().reverse(),'Town Hall',...IW,...WEST.slice(1)]},
+  {id:'T1', path:['Blacktown','Marayong','Quakers Hill','Schofields','Riverstone','Vineyard','Mulgrave','Windsor','Clarendon','East Richmond','Richmond']},
+  {id:'T9', path:['Hornsby','Normanhurst','Thornleigh','Pennant Hills','Beecroft','Cheltenham','Epping','Eastwood','Denistone','West Ryde','Meadowbank','Rhodes','Concord West','North Strathfield',...IW.slice().reverse(),'Town Hall',...NSHORE]},
+  {id:'T2', path:LOOP}, {id:'T2', path:[...IW,...WEST.slice(1,7),...SOUTHW]},
+  {id:'T3', path:LOOP}, {id:'T3', path:[...IW,'Homebush','Flemington','Lidcombe','Berala','Regents Park','Sefton','Chester Hill','Leightonfield','Villawood','Carramar','Cabramatta','Warwick Farm','Liverpool']},
+  {id:'T4', path:['Bondi Junction','Edgecliff','Kings Cross','Martin Place','Town Hall',...ILL,'Arncliffe','Banksia','Rockdale','Kogarah','Carlton','Allawah','Hurstville','Penshurst','Mortdale','Oatley','Como','Jannali','Sutherland']},
+  {id:'T4', path:['Sutherland','Kirrawee','Gymea','Miranda','Caringbah','Woolooware','Cronulla']},
+  {id:'T4', path:['Sutherland','Loftus','Engadine','Heathcote','Waterfall']},
+  {id:'T5', path:['Schofields','Quakers Hill','Marayong','Blacktown','Seven Hills','Toongabbie','Pendle Hill','Wentworthville','Westmead','Parramatta','Harris Park',...SOUTHW]},
+  {id:'T6', path:['Lidcombe','Berala','Regents Park','Birrong','Yagoona','Bankstown']},
+  {id:'T7', path:['Lidcombe','@540,1125','Olympic Park']},
+  {id:'T8', path:LOOP}, {id:'T8', path:['Central','Green Square','Mascot','Domestic Airport','International Airport','Wolli Creek','@960,1450','Turrella','Bardwell Park','Bexley North','Kingsgrove','Beverly Hills','Narwee','Riverwood','Padstow','Revesby','Panania','East Hills','Holsworthy','Glenfield','Macquarie Fields','Ingleburn','Minto','Leumeah','Campbelltown','Macarthur']},
+  {id:'T8', path:ILL, dash:true},
+  {id:'M1', path:['Tallawong','Rouse Hill','Kellyville','Bella Vista','Norwest','Hills Showground','Castle Hill','Cherrybrook','@700,692','Epping','Macquarie University','Macquarie Park','North Ryde','Chatswood','@870,740','Crows Nest','Victoria Cross','Barangaroo','Martin Place','Gadigal','Central','Waterloo','@1030,1300','Sydenham','Marrickville','Dulwich Hill','Hurlstone Park','Canterbury','Campsie','Belmore','Lakemba','Wiley Park','Punchbowl','Bankstown']},
+];
+const GAP = 5;   // 나란히 그릴 때 노선 사이 간격
+const NS = 'http://www.w3.org/2000/svg';
+const svg = $('map');
+const el = (tag, attrs={}, parent=svg) => { const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); parent.appendChild(e); return e; };
+let pinLayer, lineLayer, routeLayer, dotLayer;
+
+function drawMap(){
+  // 1) 구간마다 지나는 노선 모으기
+  const segKey = (a,b) => a<b ? a+'|'+b : b+'|'+a;
+  const segLines = {}, stLines = {}, stMax = {};
+  for(const D of DRAW) for(let i=0;i<D.path.length-1;i++){
+    const k = segKey(D.path[i], D.path[i+1]);
+    (segLines[k] ||= new Set()).add(D.id+(D.dash?'d':''));
+  }
+  for(const D of DRAW) for(const n of D.path) if(n[0]!=='@') (stLines[n] ||= new Set()).add(D.id);
+  // 2) 선 그리기 (구간마다 수직 방향으로 벌려서 나란히)
+  lineLayer = el('g');
+  const order = id => LINE_ORDER.indexOf(id.replace('d','')) + (id.endsWith('d')?0.5:0);
+  for(const D of DRAW){
+    const me = D.id+(D.dash?'d':'');
+    for(let i=0;i<D.path.length-1;i++){
+      const a = D.path[i], b = D.path[i+1], k = segKey(a,b);
+      const ids = [...segLines[k]].sort((x,y)=>order(x)-order(y)), n = ids.length, off = (ids.indexOf(me)-(n-1)/2)*GAP;
+      const [p, q] = a<b ? [coord(a), coord(b)] : [coord(b), coord(a)];
+      const len = Math.hypot(q[0]-p[0], q[1]-p[1]) || 1, nx = -(q[1]-p[1])/len*off, ny = (q[0]-p[0])/len*off;
+      const A = coord(a), B = coord(b);
+      el('line',{class:'ln', x1:A[0]+nx, y1:A[1]+ny, x2:B[0]+nx, y2:B[1]+ny, stroke:LINE_COLOR[D.id], ...(D.dash?{'stroke-dasharray':'2 8'}:{})}, lineLayer);
+      for(const s of [a,b]) if(s[0]!=='@') stMax[s] = Math.max(stMax[s]||1, n);
+    }
+  }
+  routeLayer = el('g');
+  // 3) 역 표시
+  const gs = el('g');
+  for(const [name,x,y,pos] of ST){
+    const multi = (stLines[name]?.size||1) > 1, r = Math.max(multi?8:6, (stMax[name]||1)*GAP/2 + 3), o = r + 7, d = r*0.7 + 3;
+    const g = el('g',{class:'st'+(multi?'':' small'), 'data-name':name, tabindex:0, role:'button', 'aria-label':name}, gs);
+    el('circle',{class:'hit',cx:x,cy:y,r:Math.max(15,r+4)},g);
+    el('circle',{class:'mk',cx:x,cy:y,r},g);
+    const L = {r:[o,5,'start'], l:[-o,5,'end'], t:[0,-o+2,'middle'], b:[0,o+10,'middle'], tl:[-o+4,-o+4,'end'],
+      ul:[-d,-d,'end',45], dl:[-d,d+8,'end',-45], dr:[d,d+8,'start',45]}[pos];
+    const tx = x+L[0], ty = y+L[1];
+    const t = el('text',{class:'lab',x:tx,y:ty,'text-anchor':L[2], ...(L[3]?{transform:`rotate(${L[3]} ${tx} ${ty})`}:{})},g);
+    t.textContent = name;
+  }
+  dotLayer = el('g');                                      // 경로 역 채우기(역 표시 위)
+  pinLayer = el('g');
+  renderLegend();
+}
+function drawPins(){
+  pinLayer.innerHTML = '';
+  for(const [st,label,color] of [[od.from,T('출발'),'var(--accent)'],[od.to,T('도착'),'var(--ok)']]){
+    if(!st || !POS[st]) continue;
+    const [x,y] = POS[st];
+    const g = el('g',{class:'pin'},pinLayer);
+    el('rect',{x:x-19,y:y-40,width:38,height:20,rx:10,fill:color},g);
+    el('path',{d:`M${x-5} ${y-21} L${x} ${y-13} L${x+5} ${y-21} Z`,fill:color},g);
+    const t = el('text',{x,y:y-26,'text-anchor':'middle'},g); t.textContent = label;
+  }
+  svg.querySelectorAll('.st').forEach(g=>g.classList.toggle('picked', g.dataset.name===od.from||g.dataset.name===od.to));
+}
+
+// ----- 경로를 노선도 위에 색으로 -----
+// 두 역 사이를 그 노선 그림의 역 순서대로 따라감(급행이 건너뛴 역·꺾이는 점 포함)
+function segPath(line, a, b){
+  let best = null;
+  for(const D of DRAW){
+    if(D.id !== line) continue;
+    D.path.forEach((n,i)=>{ if(n!==a) return; D.path.forEach((m,j)=>{ if(m===b && (!best || Math.abs(i-j) < Math.abs(best.i-best.j))) best = {p:D.path, i, j}; }); });
+  }
+  if(!best) return [coord(a), coord(b)];
+  const {p, i, j} = best;
+  return (i<j ? p.slice(i, j+1) : p.slice(j, i+1).reverse()).map(coord);
+}
+let shownLegs = null;
+function drawRoute(legs){
+  routeLayer.innerHTML = ''; dotLayer.innerHTML = ''; shownLegs = legs;
+  lineLayer.classList.toggle('dimmed', !!legs);
+  if(!legs) return [];
+  // 지나가는 역 순서(갈아타는 역은 한 번만)와 한 역당 움직임 시간
+  const seq = [];
+  for(const g of legs) for(const x of g.trip.times.slice(g.bi, g.ai+1)) if(POS[x.st] && seq[seq.length-1]!==x.st) seq.push(x.st);
+  const step = Math.min(110, 1800/Math.max(seq.length-1,1));     // 역이 많아도 1.8초 안에 끝
+  const all = [];
+  let k = 0;                                                     // 이 구간 첫 역이 seq에서 몇 번째인지
+  for(const g of legs){
+    const st = g.trip.times.slice(g.bi, g.ai+1).map(x=>x.st).filter(n=>POS[n]);
+    let path = [];
+    for(let i=0; i<st.length-1; i++){ const p = segPath(g.trip.line, st[i], st[i+1]); path = path.concat(i ? p.slice(1) : p); }
+    if(path.length >= 2){
+      const pts = path.map(p=>p.join(',')).join(' ');
+      // 선이 출발역에서 도착역 쪽으로 그려지며 따라간다
+      const anim = `animation-delay:${Math.round(k*step)}ms;animation-duration:${Math.round((st.length-1)*step)}ms`;
+      el('polyline',{class:'rt halo draw', points:pts, pathLength:1, style:anim}, routeLayer);
+      el('polyline',{class:'rt main draw', points:pts, stroke:LINE_COLOR[g.trip.line], pathLength:1, style:anim}, routeLayer);
+      all.push(...path);
+    }
+    k += Math.max(st.length-1, 0);
+  }
+  // 역 동그라미를 출발역부터 도착역까지 차례로 빨간색으로 채운다
+  const marks = Object.fromEntries([...svg.querySelectorAll('.st')].map(g=>[g.dataset.name, g.querySelector('circle.mk')]));
+  seq.forEach((n,i)=>{
+    const [x,y] = POS[n], r = +(marks[n]?.dataset.r || marks[n]?.getAttribute('r') || 6);
+    const end = i===0 || i===seq.length-1;
+    el('circle',{class:'rdot'+(end?' end':''), cx:x, cy:y, r:Math.max(4, r*(end?0.8:0.62)), style:`animation-delay:${Math.round(i*step)}ms`}, dotLayer);
+  });
+  return all;
+}
+function fitTo(points){
+  if(!points.length) return;
+  const xs = points.map(p=>p[0]), ys = points.map(p=>p[1]);
+  const r = svg.getBoundingClientRect(), ar = r.height/Math.max(r.width,1);
+  const pad = 70, x0 = Math.min(...xs)-pad, x1 = Math.max(...xs)+pad, y0 = Math.min(...ys)-pad, y1 = Math.max(...ys)+pad+60;
+  let w = Math.max(x1-x0, (y1-y0)/ar, 300); w = Math.min(w, 2600);
+  vb = {w, h:w*ar, x:(x0+x1)/2-w/2, y:(y0+y1)/2-(w*ar)/2}; applyVB();
+}
+function showRouteBar(legs){
+  const bar = $('routebar');
+  if(!legs){ bar.hidden = true; $('mapbox').classList.remove('hasbar'); return; }
+  const dep = legs[0].trip.times[legs[0].bi].t, last = legs[legs.length-1], arr = last.trip.times[last.ai].t;
+  $('rbText').innerHTML = `<b>${T('{n}분',{n:Math.round(arr-dep)})}</b>${hhmm(dep)} → ${hhmm(arr)} · ${legs.length>1?T('환승 {n}회',{n:legs.length-1}):T('환승 없음')}<span>${esc(od.from)} → ${esc(od.to)} · ${legs.map(g=>g.trip.line).join(' → ')}</span>`;
+  bar.hidden = false; $('mapbox').classList.add('hasbar');
+}
+function updateReset(){ $('resetBtn').hidden = !(od.from || od.to); }
+function resetOD(){
+  od.from = null; od.to = null;
+  drawPins(); drawRoute(null); showRouteBar(null); closeSheet(); updateReset();
+  toast(T('출발·도착을 지웠어요.'));
+}
+$('resetBtn').addEventListener('click', resetOD);
+$('routebar').addEventListener('click', ()=>openRoute());
+
+// ----- 끌기·확대 -----
+let vb = {x:0,y:0,w:1000,h:1000};
+function homeView(){
+  const r = svg.getBoundingClientRect(); const ar = r.height/Math.max(r.width,1);
+  const w = r.width >= 700 ? 820 : 520;
+  vb = {w, h:w*ar, x:1010-w/2, y:1060-(w*ar)/2}; applyVB();
+}
+function applyVB(){ svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`); hideMenu(); }
+function zoomAt(f, cx, cy){
+  const nw = Math.min(2600, Math.max(220, vb.w*f)); f = nw/vb.w;
+  vb.x = cx-(cx-vb.x)*f; vb.y = cy-(cy-vb.y)*f; vb.w = nw; vb.h *= f; applyVB();
+}
+function toMap(cx, cy){ const r = svg.getBoundingClientRect(); return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h]; }
+function toScreen(x, y){ const r = svg.getBoundingClientRect(); return [(x-vb.x)/vb.w*r.width, (y-vb.y)/vb.h*r.height]; }
+const ptrs = new Map(); let moved = 0, pinch0 = null;
+svg.addEventListener('pointerdown', e=>{
+  svg.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1) moved = 0;
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch0 = Math.hypot(a.x-b.x,a.y-b.y); }
+  svg.classList.add('dragging');
+});
+svg.addEventListener('pointermove', e=>{
+  const p = ptrs.get(e.pointerId); if(!p) return;
+  const r = svg.getBoundingClientRect();
+  if(ptrs.size===1){
+    const dx=e.clientX-p.x, dy=e.clientY-p.y; moved += Math.abs(dx)+Math.abs(dy);
+    if(moved > 6){ vb.x -= dx/r.width*vb.w; vb.y -= dy/r.height*vb.h; applyVB(); }
+  }
+  p.x=e.clientX; p.y=e.clientY;
+  if(ptrs.size===2){
+    moved = 99;
+    const [a,b]=[...ptrs.values()]; const d = Math.hypot(a.x-b.x,a.y-b.y);
+    if(pinch0){ const [cx,cy]=toMap((a.x+b.x)/2,(a.y+b.y)/2); zoomAt(pinch0/d,cx,cy); }
+    pinch0 = d;
+  }
+});
+// 손가락으로 고르기 좋은 배율(화면 px / 노선도 단위). 역 사이가 대개 32단위라 약 45px이 된다
+const TAP_SCALE = 1.4, TAP_PX = 30;
+let vbAnim = null, vbTarget = null;
+function animateVB(to, ms, done){
+  cancelAnimationFrame(vbAnim); vbTarget = to; const from = {...vb}, t0 = performance.now();
+  const step = now => {
+    const k = Math.min(1, (now-t0)/ms), e = 1-Math.pow(1-k, 3);
+    for(const key of ['x','y','w','h']) vb[key] = from[key] + (to[key]-from[key])*e;
+    applyVB();
+    if(k < 1) vbAnim = requestAnimationFrame(step); else { vbTarget = null; if(done) done(); }
+  };
+  vbAnim = requestAnimationFrame(step);
+}
+// 두 번 누르기: 누른 자리를 그대로 두고 2배 확대(움직이는 중이면 도착할 화면 기준)
+// 첫 번째 누르기 때 화면이 멀리 보기였으면 → 첫 누르기가 이미 확대하므로 그대로(= 확대)
+// 이미 확대돼 있었으면 → 전체 보기(⌂)로 돌아간다. 첫 누르기로 열린 역 창은 닫는다
+let lastTap = {t:0, x:0, y:0, far:false, opened:false};
+function isDoubleTap(cx, cy){
+  const now = performance.now(), dbl = now-lastTap.t < 350 && Math.hypot(cx-lastTap.x, cy-lastTap.y) < 40;
+  const prev = lastTap;
+  lastTap = dbl ? {t:0, x:0, y:0, far:false, opened:false} : {t:now, x:cx, y:cy, far:svg.getBoundingClientRect().width/vb.w < TAP_SCALE*0.8, opened:false};
+  return dbl ? prev : null;
+}
+function dblToggle(prev){
+  if(prev.far) return;                                         // 멀리 보기에서 두 번 → 첫 누르기의 확대로 충분
+  hideMenu(); if(prev.opened) closeSheet();
+  const keep = {...vb}; cancelAnimationFrame(vbAnim); vbTarget = null;
+  fitTo(Object.values(POS)); const home = {...vb}; vb = keep; applyVB();   // 전체 노선도를 계산만 하고 부드럽게 이동
+  animateVB(home, 300);
+}
+function tapNear(cx, cy, hit){
+  const r = svg.getBoundingClientRect(), scale = r.width/vb.w;
+  const near = Object.entries(POS).map(([n,[x,y]])=>{ const [sx,sy] = toScreen(x,y); return [n, Math.hypot(sx-(cx-r.left), sy-(cy-r.top))]; })
+    .filter(a=>a[1] <= TAP_PX).sort((a,b)=>a[1]-b[1]);
+  if(!near.length && !hit && scale >= TAP_SCALE*0.8) return false;                    // 확대된 상태에서 빈 곳: 원래대로
+  const one = hit ? hit.dataset.name : near.length && (near.length===1 || near[0][1] < near[1][1]*0.6) ? near[0][0] : null;
+  if(scale >= TAP_SCALE*0.8){ if(one && !hit){ openStation(one); return true; } return false; }   // 이미 충분히 크다
+  const [mx, my] = one ? POS[one] : toMap(cx, cy);
+  const [px, py] = one ? toScreen(...POS[one]) : [cx-r.left, cy-r.top];               // 누른 자리는 화면에서 그대로
+  const w = r.width/TAP_SCALE, h = vb.h*w/vb.w;
+  hideMenu();
+  animateVB({x: mx - px/r.width*w, y: my - py/r.height*h, w, h}, 320, ()=>{ if(one) openStation(one); else if(near.length > 1) toast(T('가까운 역이 여러 개예요. 원하는 역을 눌러 주세요.')); });
+  return true;
+}
+function endPtr(e){
+  const was = ptrs.size; ptrs.delete(e.pointerId);
+  if(ptrs.size<2) pinch0=null;
+  if(!ptrs.size) svg.classList.remove('dragging');
+  if(was===1 && moved < 8 && e.type==='pointerup'){
+    const hit = document.elementFromPoint(e.clientX,e.clientY)?.closest('.st');
+    const dbl = isDoubleTap(e.clientX, e.clientY);
+    if(dbl){ dblToggle(dbl); return; }
+    const was = sheet.hidden;
+    if(tapNear(e.clientX, e.clientY, hit)){ lastTap.opened = was && !sheet.hidden; return; }
+    if(hit){ openStation(hit.dataset.name); lastTap.opened = was && !sheet.hidden; }
+    else { hideMenu(); if(!sheet.hidden && sh.mode==='info' && !sh.full) closeSheet(); else if(sheet.hidden) markSel(null); }
+  }
+}
+svg.addEventListener('pointerup', endPtr);
+svg.addEventListener('pointercancel', endPtr);
+svg.addEventListener('wheel', e=>{ e.preventDefault(); const [cx,cy]=toMap(e.clientX,e.clientY); zoomAt(e.deltaY>0?1.12:1/1.12,cx,cy); },{passive:false});
+svg.addEventListener('keydown', e=>{ const s=e.target.closest?.('.st'); if(s && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); openStation(s.dataset.name);} });
+$('zin').onclick = ()=>zoomAt(1/1.3, vb.x+vb.w/2, vb.y+vb.h/2);
+$('zout').onclick = ()=>zoomAt(1.3, vb.x+vb.w/2, vb.y+vb.h/2);
+$('zreset').onclick = homeView;
+
+let toastTimer;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'),2600); }
+
+// ----- 역 메뉴 -----
+let menuStation = null;
+function showMenu(name){
+  menuStation = name;
+  const m = $('menu'); $('mtitle').textContent = name; m.hidden = false;
+  const box = $('mapbox').getBoundingClientRect();
+  const [sx, sy] = toScreen(...POS[name]);
+  const w = m.offsetWidth, h = m.offsetHeight;
+  const below = sy - h - 48 < 0;
+  const left = Math.min(Math.max(8, sx - w/2), box.width - w - 8);
+  m.style.left = left+'px';
+  m.style.top = (below ? sy + 24 : sy - h - 18)+'px';
+  m.classList.toggle('below', below);
+  m.style.setProperty('--ax', Math.min(Math.max(14, sx-left), w-14)+'px');
+}
+function hideMenu(){ $('menu').hidden = true; menuStation = null; }
+// 역(동그라미·이름)을 누르면: 아래에 그 역 정보 창(작게) + 역 위에 [출발·도착·상세] 메뉴. 경로를 본 뒤에도 항상 같다.
+// 누른 역 강조(하나만). null이면 지운다
+function markSel(name){
+  svg.querySelectorAll('.st.sel').forEach(g=>{
+    g.classList.remove('sel'); g.querySelector('.selring')?.remove();
+    const m = g.querySelector('circle.mk'); if(m.dataset.r) m.setAttribute('r', m.dataset.r);   // 원래 크기로
+  });
+  if(!name) return;
+  const g = [...svg.querySelectorAll('.st')].find(x=>x.dataset.name===name); if(!g) return;
+  const mk = g.querySelector('circle.mk');
+  mk.dataset.r = mk.dataset.r || mk.getAttribute('r');
+  mk.setAttribute('r', Math.max(11, +mk.dataset.r * 1.7));           // 누른 역은 더 크게
+  g.classList.add('sel');
+  el('circle',{class:'selring', cx:mk.getAttribute('cx'), cy:mk.getAttribute('cy'), r:mk.getAttribute('r')}, g);
+  g.parentNode.appendChild(g);                                   // 다른 역 위로 올려 그림
+}
+function openStation(name){
+  openSheet(name, 'info'); markSel(name);
+  requestAnimationFrame(()=>{
+    const box = $('mapbox').getBoundingClientRect(), r = svg.getBoundingClientRect();
+    const [, sy] = toScreen(...POS[name]);
+    const limit = box.height - peekPx() - 40;                     // 창 위로 보이는 높이
+    if(sy > limit || sy < 90){
+      const want = Math.max(110, limit*0.55);
+      vb.y += (sy - want)/r.height*vb.h; applyVB();
+    }
+    showMenu(name);
+  });
+}
+$('menu').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b || !menuStation) return;
+  const st = menuStation; hideMenu();
+  if(b.dataset.act==='info') openBoardPage(st);
+  else if(b.dataset.act==='from') setFrom(st);
+  else setTo(st);
+});
+
+// =====================================================================
+// 3) 출발·도착 상태
+// =====================================================================
+const od = {from:null, to:null};
+// 출발·도착이 다 정해지면 경로 화면 대신 노선도에서 경로를 움직임으로 보여 준다(자세히는 아래 [경로 보기])
+function showRouteOnMap(){
+  closeSheet(); hideMenu();
+  const legs = findRoutes(queryTime(), od.from, od.to)[routeMode];
+  routeLegs = legs;
+  if(!legs) return openRoute();                                    // 갈 수 있는 열차가 없으면 경로 화면에서 안내
+  fitTo(drawRoute(legs)); showRouteBar(legs);
+}
+function setFrom(st){
+  if(st===od.to) od.to = null;
+  od.from = st; drawPins(); updateReset(); drawRoute(null); showRouteBar(null);
+  if(od.to) return showRouteOnMap();
+  openSheet(st, 'from');
+}
+function setTo(st){
+  if(st===od.from){ toast(T('출발역과 같은 역이에요. 다른 역을 골라 주세요.')); return; }
+  od.to = st; drawPins(); updateReset(); drawRoute(null); showRouteBar(null);
+  if(od.from) return showRouteOnMap();
+  openSheet(st, 'to');
+  toast(T('출발역을 노선도에서 누르거나 아래 목록에서 골라 주세요.'));
+}
+
+// =====================================================================
+// 4) 출발 창 (아래 약 20% → 끌어 올리면 전체 화면)
+// =====================================================================
+const sheet = $('sheet');
+let sh = {st:null, mode:'from', line:null, full:false, y:0};
+function peekPx(){ return Math.round(Math.min(300, Math.max(230, innerHeight*0.24))); }
+function placeSheet(full){
+  sh.full = full; sheet.classList.toggle('full', full);
+  sh.y = full ? 0 : sheet.offsetHeight - peekPx();
+  sheet.style.transform = `translateY(${sh.y}px)`;
+  if(!full) $('sbody').scrollTop = 0;
+}
+function openSheet(st, mode){
+  sh = {...sh, st, mode, line: linesAt(st)[0], full:false};
+  board.st = st; board.selected = null; board.only = false;
+  board.dest = mode==='from' ? (od.to || store('dest-'+st) || FAV_DEST[st] || '') : mode==='info' ? (store('dest-'+st) || FAV_DEST[st] || '') : '';
+  if(board.dest && !directDests(st).includes(board.dest)) board.dest = '';
+  sheet.hidden = false;
+  renderSheet();
+  requestAnimationFrame(()=>placeSheet(false));
+}
+function closeSheet(){ sheet.hidden = true; markSel(null); }
+function renderSheet(){
+  if(sheet.hidden) return;
+  const st = sh.st, now = sydneyNow();
+  $('lineChips').innerHTML = linesAt(st).map(L=>`<button class="lchip" data-line="${L}" aria-pressed="${L===sh.line}" aria-label="${T('{l} 노선',{l:L})}"><span class="badge" style="background:${LINE_COLOR[L]}">${L}</span></button>`).join('');
+  $('shNear').textContent = '📍 '+T('주변정보');
+  $('shMode').textContent = T({from:'출발역', to:'도착역', info:'역 정보'}[sh.mode]);
+  $('shMode').className = 'tag ' + (sh.mode==='to' ? 'nx' : 'yes');
+  // 고른 노선에서 이 역의 앞·뒤 역
+  const svc = SERVICES.find(s=>s.line===sh.line && s.stops.some(x=>x[0]===st));
+  const i = svc.stops.findIndex(x=>x[0]===st);
+  const pv = svc.stops[i-1]?.[0], nx = svc.stops[i+1]?.[0];
+  const deps = departuresAt(now, st, null).filter(d=>d.trip.line===sh.line);
+  const col = dir => {
+    const ds = deps.filter(d=>d.trip.dir===dir).slice(0,3);
+    if(!ds.length) return '<span class="none">'+T('지금 열차 없음')+'</span>';
+    return ds.map(d=>`<span class="d">${esc(destTxt(d.trip.dest))}${d.trip.line==='T8'?` <span class="via">${esc(T(d.trip.via))}</span>`:''} <em class="num">${d.trip.cancelled?T('취소'):d.away<1?T('곧 도착'):T('{n}분',{n:Math.floor(d.away)})}</em>${d.trip.delay?` <span class="late">+${d.trip.delay}</span>`:''}${d.trip.platform?` <span class="via">P${esc(d.trip.platform)}</span>`:''}</span>`).join('');
+  };
+  const others = ALL_STATIONS.filter(s=>s!==st);
+  const pick = sh.mode==='info'
+    ? `<div class="pick"><b>${esc(st)}</b><button class="pbtn" data-go="from">${T('↗ 여기서 출발')}</button><button class="pbtn" data-go="to">${T('↙ 여기로 도착')}</button></div>`
+    : sh.mode==='from'
+    ? `<div class="pick"><b>${T('출발')} ${esc(st)}</b> → ${T('도착역')} <select class="dsel" id="sheetPick" aria-label="${T('도착역 고르기')}"><option value="">${T('고르기')}</option>${others.map(s=>`<option${s===od.to?' selected':''}>${esc(s)}</option>`).join('')}</select><span class="via">${T('또는 노선도에서 역을 눌러 [도착]')}</span></div>`
+    : `<div class="pick">${T('출발역')} <select class="dsel" id="sheetPick" aria-label="${T('출발역 고르기')}"><option value="">${T('고르기')}</option>${others.map(s=>`<option>${esc(s)}</option>`).join('')}</select> → <b>${T('도착')} ${esc(st)}</b></div>`;
+  $('sbody').innerHTML = `
+    <div class="lbar" style="--lc:${LINE_COLOR[sh.line]}"><span class="pv">${pv?'‹ '+esc(pv):''}</span><span class="cur">${esc(st)}</span><span class="nx">${nx?esc(nx)+' ›':''}</span></div>
+    <div class="cols"><div>${col('r')}</div><div>${col('f')}</div></div>
+    ${pick}
+    <div class="uphint">${T('▲ 위로 밀면 이 역의 전체 출발 정보가 나와요')}</div>
+    ${liveNote(st)}
+    <div id="sheetBoard"></div>`;
+  renderBoard($('sheetBoard'), false);
+}
+$('lineChips').addEventListener('click', e=>{ const b=e.target.closest('.lchip'); if(b){ sh.line=b.dataset.line; renderSheet(); } });
+$('shClose').addEventListener('click', closeSheet);
+$('shNear').addEventListener('click', e=>{ e.stopPropagation(); openUrl('https://www.google.com/maps/search/?api=1&query='+placeQ(sh.st)); });
+$('sbody').addEventListener('click', e=>{
+  const b = e.target.closest('[data-go]'); if(!b) return;
+  hideMenu(); b.dataset.go==='from' ? setFrom(sh.st) : setTo(sh.st);
+});
+$('sbody').addEventListener('change', e=>{
+  if(e.target.id!=='sheetPick' || !e.target.value) return;
+  if(sh.mode==='from') setTo(e.target.value); else setFrom(e.target.value);
+});
+// 끌어 올리기·내리기 (작은 창일 때는 어디를 밀어도 되고, 전체 화면에서는 손잡이로 내림)
+let drag = null;
+sheet.addEventListener('pointerdown', e=>{
+  if(e.target.closest('button,select,input,label')) return;
+  if(sh.full && !e.target.closest('#grab')) return;
+  drag = {y0:e.clientY, base:sh.y, moved:0, id:e.pointerId};
+  sheet.classList.add('dragging');
+});
+sheet.addEventListener('pointermove', e=>{
+  if(!drag || e.pointerId!==drag.id) return;
+  const dy = e.clientY - drag.y0; drag.moved = Math.max(drag.moved, Math.abs(dy));
+  if(drag.moved > 6 && !sheet.hasPointerCapture(e.pointerId)) sheet.setPointerCapture(e.pointerId);
+  const maxY = sheet.offsetHeight - peekPx();
+  sh.y = Math.min(maxY + 80, Math.max(0, drag.base + dy));
+  sheet.style.transform = `translateY(${sh.y}px)`;
+});
+function dragEnd(e){
+  if(!drag || e.pointerId!==drag.id) return;
+  sheet.classList.remove('dragging');
+  const maxY = sheet.offsetHeight - peekPx(), wasFull = sh.full;
+  if(drag.moved < 6){ if(e.target.closest('#grab')) placeSheet(!sh.full); else placeSheet(sh.full); }
+  else if(sh.y > maxY + 50) closeSheet();
+  else placeSheet(wasFull ? sh.y < maxY*0.35 : sh.y < maxY*0.8);
+  drag = null;
+}
+sheet.addEventListener('pointerup', dragEnd);
+sheet.addEventListener('pointercancel', dragEnd);
+
+// =====================================================================
+// 5) 역 보드 (상세 화면 / 창 전체 화면 공용)
+// =====================================================================
+const board = {st:null, dest:'', only:false, selected:null, isPage:false};
+let boardHostEl = null;
+const wide = matchMedia('(min-width:700px)');
+function minsHTML(a){ return a<1 ? '<span class="mins now">'+T('곧 도착')+'</span>' : `<span class="mins">${Math.floor(a)}<small>${T('분')}</small></span>`; }
+function rowHTML(d){
+  const t = d.trip, nxt = t.times[d.i+1]?.st;
+  const tag = board.dest
+    ? (d.goes ? `<span class="tag yes">${esc(board.dest)} <span class="num">${hhmm(d.targetAt)}</span></span>` : `<span class="tag no">${esc(T('{d} 안 감',{d:board.dest}))}</span>`)
+    : `<span class="tag nx">${esc(T('다음 {s}',{s:nxt}))}</span>`;
+  return `<button class="row${board.dest&&!d.goes?' dim':''}" data-id="${d.id}" aria-expanded="${d.id===board.selected}">
+    ${minsHTML(d.away)}
+    <span class="mid">
+      <span class="top"><span class="badge" style="background:${LINE_COLOR[t.line]}">${t.line}</span>
+        <span class="dest">${esc(t.dest)}</span>${t.cancelled?`<span class="late">${T('취소')}</span>`:''}${t.delay?`<span class="late">${T('+{n}분 지연',{n:t.delay})}</span>`:''}${t.platform?`<span class="tag nx">${T('{n}번 승강장',{n:t.platform})}</span>`:''}${d.fastest?'<span class="fast">'+T('가장 빨리 도착')+'</span>':''}</span>
+      <span class="via">${esc(T(t.via))} · ${T('{t} 출발',{t:hhmm(d.dep)})}</span>
+    </span>${tag}</button>`;
+}
+function detailHTML(d, list, cls){
+  const t = d.trip, lc = LINE_COLOR[t.line], seq = t.times.slice(d.i);
+  const items = seq.map((x,k)=>{
+    const gap = k>0 && x.t-seq[k-1].t>8 ? `<li class="gap" style="--lc:${lc}"><span class="dot"></span><span class="sn">${T('… 중간 역 생략')}</span><span></span></li>` : '';
+    return gap+`<li class="${x.st===board.dest||k===0?'key':''}" style="--lc:${lc}"><span class="dot"></span>
+      <span class="sn">${esc(x.st)}${x.st===board.dest?' ✓':''}</span>
+      <span class="st">${t.delay?`<s>${hhmm(x.s)}</s>`:''}${hhmm(x.t)}</span></li>`;
+  }).join('');
+  let miss = '';
+  if(board.dest && !d.goes){
+    const alt = list.filter(x=>x.goes && x.dep>=d.dep).reduce((a,x)=>!a||x.targetAt<a.targetAt?x:a,null);
+    miss = `<div class="miss">${esc(T('이 열차는 {d}에 서지 않아요.',{d:board.dest}))}${alt?` ${T('가장 빨리 가는 열차는 <b>{a}</b> 출발 {l}, <b>{b}</b> 도착이에요.',{a:hhmm(alt.dep),l:alt.trip.line,b:hhmm(alt.targetAt)})}`:''}</div>`;
+  }
+  return `<section class="detail ${cls}">
+    <h2><span class="badge" style="background:${lc}">${t.line}</span> ${esc(destTxt(t.dest))} <span class="via">${esc(T(t.via))}</span></h2>
+    <p class="note">${T('각 역 도착 예정 시각')}${t.delay?` · ${T('{n}분 늦어진 시각(취소선은 원래 시각)',{n:t.delay})}`:' · '+T('정시')}</p>
+    <ol class="stops">${items}</ol>${miss}</section>`;
+}
+function renderBoard(host, isPage){
+  boardHostEl = host; board.isPage = isPage;
+  const now = sydneyNow(), st = board.st;
+  const all = departuresAt(now, st, board.dest);
+  const someMiss = !!board.dest && all.some(d=>!d.goes);
+  const list = board.only && someMiss ? all.filter(d=>d.goes) : all;
+  if(!list.find(d=>d.id===board.selected)) board.selected = (all.find(d=>d.fastest) || list[0] || {}).id;
+  const sel = all.find(d=>d.id===board.selected);
+  const best = board.dest ? all.find(d=>d.fastest) : null;
+  const two = isPage && wide.matches;
+  const rows = list.slice(0,12).map(d=>rowHTML(d)+(!two&&d.id===board.selected?detailHTML(d,all,''):'')).join('');
+  host.innerHTML = `
+    ${isPage?`<header class="bh"><div class="where"><small>${T('역 출발 정보 · 시드니 시각')}</small><h1>${esc(st)}</h1></div><div class="clock num">${hhmm(Math.floor(now.mod))}</div></header>
+      ${liveNote(st)}`:''}
+    <div class="bctl">
+      <label for="bDest">${T('도착역')} <select class="dsel" id="bDest"><option value="">${T('고르지 않음')}</option>${directDests(st).map(s=>`<option${s===board.dest?' selected':''}>${esc(s)}</option>`).join('')}</select></label>
+      ${someMiss||board.only?`<label class="controls" for="bOnly"><span class="switch"><input type="checkbox" id="bOnly"${board.only?' checked':''}><span></span></span>${esc(T('{d} 가는 열차만',{d:board.dest}))}</label>`:''}
+    </div>
+    ${best?`<div class="next"><span class="k">${esc(T('{d} 가장 빨리',{d:board.dest}))}</span><span class="v">${T('{a} 출발 → {b} 도착',{a:hhmm(best.dep),b:hhmm(best.targetAt)})}</span><span class="via">${best.trip.line} ${esc(T(best.trip.via))} · ${best.away<1?T('곧 도착'):T('{n}분 후',{n:Math.floor(best.away)})}</span></div>`:''}
+    <div class="board"><div class="list">${rows||'<div class="empty">'+T('지금 이 역에 서는 열차가 없어요(견본 시간표 기준).')+'</div>'}</div>${two&&sel?detailHTML(sel,all,'side'):''}</div>
+    <p class="foot">${T('도착역 목록에는 갈아타지 않고 갈 수 있는 역만 나와요. 갈아타야 하면 노선도에서 [출발] → [도착]으로 경로를 찾으세요.')}</p>`;
+}
+document.addEventListener('click', e=>{
+  if(!boardHostEl || !boardHostEl.contains(e.target)) return;
+  const r = e.target.closest('.row'); if(r){ board.selected = r.dataset.id; renderBoard(boardHostEl, board.isPage); }
+});
+document.addEventListener('change', e=>{
+  if(e.target.id==='bDest'){ board.dest = e.target.value; board.selected = null; store('dest-'+board.st, board.dest); renderBoard(boardHostEl, board.isPage); }
+  if(e.target.id==='bOnly'){ board.only = e.target.checked; renderBoard(boardHostEl, board.isPage); }
+});
+function openBoardPage(st){
+  board.st = st; board.selected = null; board.only = false;
+  board.dest = store('dest-'+st) ?? FAV_DEST[st] ?? '';
+  if(board.dest && !directDests(st).includes(board.dest)) board.dest = '';
+  $('boardview').hidden = false;
+  renderBoard($('boardHost'), true);
+  $('boardview').scrollTop = 0;
+}
+$('bBack').addEventListener('click', ()=>{ $('boardview').hidden = true; if(!sheet.hidden){ board.st = sh.st; renderSheet(); } });
+
+// =====================================================================
+// 6) 경로 화면 (도착)
+// =====================================================================
+let routeMode = 'fast', routeLegs = null;
+// 출발 시각: 'now' 또는 날짜(0=오늘,1=내일,2=모레) + 시각
+const when = {day:'now', time:'08:00'};
+const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], WD_KO = {Sun:'일',Mon:'월',Tue:'화',Wed:'수',Thu:'목',Fri:'금',Sat:'토'};
+function queryTime(){
+  const now = sydneyNow();
+  if(when.day==='now') return now;
+  const y=+now.ymd.slice(0,4), m=+now.ymd.slice(4,6), d=+now.ymd.slice(6,8);
+  const dt = new Date(Date.UTC(y, m-1, d + when.day));
+  const [hh, mm] = when.time.split(':').map(Number);
+  return {mod: hh*60+mm, weekday: WD[dt.getUTCDay()],
+    ymd: dt.getUTCFullYear()+String(dt.getUTCMonth()+1).padStart(2,'0')+String(dt.getUTCDate()).padStart(2,'0'), planned:true};
+}
+function whenHTML(qt){
+  const days = [['now',T('지금')],[0,T('오늘')],[1,T('내일')],[2,T('모레')]];
+  return `<div class="when"><span>${T('출발')}</span>
+    <div class="seg" role="group" aria-label="${T('출발 날짜')}">${days.map(([v,l])=>`<button data-day="${v}" aria-pressed="${String(when.day)===String(v)}">${l}</button>`).join('')}</div>
+    ${when.day==='now'?'':`<input type="time" class="tinput" id="whenTime" value="${when.time}" aria-label="${T('출발 시각')}"><span class="via">${T('{w}요일 기준',{w:wdName(qt.weekday)})}</span>`}
+  </div>`;
+}
+
+// ----- 즐겨찾기 경로 (이 기기 브라우저에 저장) -----
+function loadFavs(){
+  try{ const v = JSON.parse(store('favs')); if(Array.isArray(v)) return v; }catch(e){}
+  return [['St James','Mascot'],['Mascot','St James']];
+}
+let favs = loadFavs();
+function saveFavs(){ store('favs', JSON.stringify(favs)); renderFavs(); }
+const isFav = () => favs.some(([a,b])=>a===od.from && b===od.to);
+function renderFavs(){
+  const na = activeAlerts().length;
+  $('favs').innerHTML = (na ? `<button class="favchip warn" data-alerts="1">⚠ ${T('운행 변경 {n}',{n:na})}</button>` : '') + favs.map(([a,b],i)=>`<button class="favchip" data-i="${i}"><span>★</span> ${esc(a)} → ${esc(b)}</button>`).join('')
+    + favSt.map(n=>`<button class="favchip stfav" data-st="${esc(n)}"><span>◎</span> ${esc(n)}</button>`).join('');
+}
+$('favs').addEventListener('click', e=>{
+  const c = e.target.closest('.favchip'); if(!c) return;
+  if(c.dataset.alerts) return openAlerts(false);
+  if(c.dataset.st) return focusStation(c.dataset.st);
+  const [a,b] = favs[+c.dataset.i];
+  od.from = a; od.to = b; drawPins(); updateReset(); showRouteOnMap();
+});
+
+// ----- 운행 변경(공사·중단) 안내 -----
+// 진짜 데이터: 교통국 GTFS-R alerts(키 필요). 지금은 이번 주말 날짜로 만든 견본.
+// 앱을 열 때 아직 안 본 안내가 있으면 먼저 띄우고, 내 즐겨찾기(경로·역)에 걸린 것을 맨 위에 "내 경로"로 표시한다.
+function sampleAlerts(){
+  const now = sydneyNow(), wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(now.weekday);
+  const y=+now.ymd.slice(0,4), m=+now.ymd.slice(4,6), d=+now.ymd.slice(6,8);
+  const toSat = wd===0 ? -1 : 6-wd;                                    // 일요일이면 어제가 토요일(이번 주말)
+  const day = k => { const t = new Date(Date.UTC(y,m-1,d+toSat+k)); return `${t.getUTCMonth()+1}/${t.getUTCDate()}`; };
+  const wk = day(0).replace('/','');
+  return [
+    {id:'t8-'+wk, lines:['T8'], title:T('T8 공항선: Central ↔ Revesby 열차 없음'), when:T('토 {a} 04:00 ~ 일 {b} 막차',{a:day(0),b:day(1)}),
+     body:T('공항 경유 구간(Green Square·Mascot·공항역) 운행 없음. 대체 버스가 다녀요. 평소보다 30분 이상 더 걸릴 수 있어요.')},
+    {id:'t2t3-'+wk, lines:['T2','T3'], title:T('T2·T3: Lidcombe ↔ Central 일부 열차 없음'), when:T('토 {a} 종일',{a:day(0)}),
+     body:T('Strathfield에서 T1·T9로 갈아타세요. Inner West 역은 대체 버스.')},
+    {id:'m1-'+wk, lines:['M1'], title:T('메트로 M1: Sydenham ↔ Bankstown 운행 없음'), when:T('일 {b} 종일',{b:day(1)}),
+     body:T('시험 운행 작업. 대체 버스가 다녀요.')},
+  ].map(a=>({...a, sample:true}));
+}
+const activeAlerts = () => live.alerts || [];                     // 실시간 운행 안내(못 받으면 없음 — 견본은 쓰지 않음)
+function myLines(){                                     // 즐겨찾기 경로는 두 역을 다 지나는 노선만(St James→Mascot = T8), 즐겨찾기 역은 그 역의 모든 노선
+  const out = new Set();
+  for(const [a,b] of favs){ const la = linesAt(a), lb = new Set(linesAt(b)); la.filter(L=>lb.has(L)).forEach(L=>out.add(L)); }
+  favSt.forEach(n=>linesAt(n).forEach(L=>out.add(L)));
+  return out;
+}
+function openAlerts(onlyNew){
+  let seen = []; try{ seen = JSON.parse(store('seenAlerts')) || []; }catch(e){}
+  const mine = myLines();
+  const list = activeAlerts().map(a=>({...a, mine:a.lines.some(L=>mine.has(L)), fresh:!seen.includes(a.id)}))
+    .sort((a,b)=>(b.mine-a.mine) || (b.fresh-a.fresh));
+  if(onlyNew && !list.some(a=>a.fresh)) return;
+  $('aList').innerHTML = (list.length ? list.map(a=>`<div class="aitem"><div class="ahead">${a.lines.map(L=>`<span class="badge" style="background:${LINE_COLOR[L]}">${L==='M1'?T('메트로'):L}</span>`).join('')}`
+      + `${a.mine?'<span class="tag">'+T('내 경로')+'</span>':''}${a.fresh?'<span class="tag new">'+T('새 안내')+'</span>':''}<b>${esc(a.title)}</b></div>`
+      + `<div class="when">${esc(a.when)}</div><p>${esc(a.body)}</p></div>`).join('') : '<p class="snone">'+T('지금 알려진 운행 변경이 없어요.')+'</p>')
+    + (list.some(a=>a.live) ? '<p class="sample live" style="margin:8px 0">'+T('교통국(TfNSW) 실시간 운행 안내예요. 내용은 영어 원문이에요.')+'</p>' : '');
+  $('alerts').hidden = false; hideMenu();
+  store('seenAlerts', JSON.stringify([...new Set([...seen, ...list.map(a=>a.id)])].slice(-60)));
+}
+function closeAlerts(){ $('alerts').hidden = true; }
+$('aOk').addEventListener('click', closeAlerts);
+$('aX').addEventListener('click', closeAlerts);
+$('alerts').addEventListener('click', e=>{ if(e.target.id==='alerts') closeAlerts(); });
+
+// ----- 즐겨찾기 역 · 최근 검색 (이 기기에 저장) -----
+function loadList(k){ try{ const v = JSON.parse(store(k)); if(Array.isArray(v)) return v.filter(n=>POS[n]); }catch(e){} return []; }
+let favSt = loadList('favst'), recent = loadList('recent');
+function toggleFavSt(n){
+  const on = favSt.includes(n);
+  favSt = on ? favSt.filter(x=>x!==n) : [n, ...favSt].slice(0,12);
+  store('favst', JSON.stringify(favSt)); renderFavs();
+  toast(on ? T('{n}: 즐겨찾기 역에서 뺐어요.',{n}) : T('{n}: 즐겨찾기 역에 넣었어요. 노선도 위쪽에 보여요.',{n}));
+}
+// 역으로 이동: 그 역을 가운데에 두고 확대한 뒤 [출발·도착·상세] 메뉴를 띄운다
+function focusStation(n){
+  closeSugg(); $('q').value = ''; $('qClear').hidden = true; $('q').blur();
+  recent = [n, ...recent.filter(x=>x!==n)].slice(0,6); store('recent', JSON.stringify(recent));
+  const r = svg.getBoundingClientRect(), ar = r.height/Math.max(r.width,1);
+  const w = Math.min(vb.w, r.width >= 700 ? 700 : 460), [x,y] = POS[n];
+  vb = {w, h:w*ar, x:x-w/2, y:y-(w*ar)/2}; applyVB();
+  markSel(n); requestAnimationFrame(()=>showMenu(n));
+}
+
+// ----- 역 이름 검색: 영어로 치면 비슷한 역을 바로 보여 준다 -----
+// 맞는 정도(작을수록 위): 같음 0 · 앞부분 1 · 단어 앞부분 2 · 머리글자(sj→St James) 3 · 중간 포함 4 · 오타 1~2자 5 · 글자 순서만 맞음 6
+const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g,'');
+const SEARCH_IX = ALL_STATIONS.map(name=>{
+  const words = name.toLowerCase().split(/[\s-]+/);
+  const keys = words.map((w,i)=>norm(words.slice(i).join('')));          // 'st james' → ['stjames','james']
+  words.forEach(w=>{ if(w==='st') keys.push('saint'); if(w==='mount') keys.push('mt'); });
+  if(/airport/i.test(name)) keys.push('airport');
+  return {name, n:norm(name), keys, ini:words.map(w=>w[0]).join('')};
+});
+function lev(a, b){                                                    // 글자 고치기 횟수(오타 거리)
+  const d = Array.from({length:a.length+1}, (_,i)=>[i]);
+  for(let j=1;j<=b.length;j++) d[0][j]=j;
+  for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++)
+  {
+    d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+    if(i>1 && j>1 && a[i-1]===b[j-2] && a[i-2]===b[j-1]) d[i][j] = Math.min(d[i][j], d[i-2][j-2]+1);   // 두 글자 순서 바뀜도 1번
+  }
+  return d[a.length][b.length];
+}
+function isSubseq(q, n){ let i=0; for(const c of n) if(c===q[i]) i++; return i===q.length; }
+function searchStations(raw){
+  const q = norm(raw); if(!q) return [];
+  const out = [];
+  for(const e of SEARCH_IX){
+    let sc = 99;
+    if(e.n===q) sc = 0;
+    else if(e.n.startsWith(q)) sc = 1;
+    else if(e.keys.some(k=>k.startsWith(q))) sc = 2;
+    else if(q.length>=2 && e.ini.startsWith(q)) sc = 3;
+    else if(e.n.includes(q)) sc = 4;
+    else if(q.length>=4){
+      const tol = q.length>=7 ? 2 : 1;
+      const dist = Math.min(...e.keys.map(k=>Math.min(lev(q, k.slice(0,q.length)), lev(q, k))));
+      if(dist<=tol) sc = 5 + dist/10;                                   // 오타가 적을수록 위
+    }
+    if(sc===99 && q.length>=3 && isSubseq(q, e.n)) sc = 6;
+    if(sc<99) out.push([sc, e.name]);
+  }
+  return out.sort((a,b)=>a[0]-b[0] || a[1].length-b[1].length || a[1].localeCompare(b[1])).slice(0,12).map(x=>x[1]);
+}
+function hilite(name, raw){
+  const t = raw.trim(); const i = t ? name.toLowerCase().indexOf(t.toLowerCase()) : -1;
+  return i<0 ? esc(name) : esc(name.slice(0,i))+'<b>'+esc(name.slice(i,i+t.length))+'</b>'+esc(name.slice(i+t.length));
+}
+const lineChips = n => linesAt(n).map(L=>`<span class="chip" style="background:${LINE_COLOR[L]}">${L==='M1'?'M':L}</span>`).join('');
+const stRow = (n, raw='') => `<div class="srow" role="option" data-st="${esc(n)}"><span class="sname">${hilite(n, raw)}</span><span class="slines">${lineChips(n)}</span>`
+  + `<button class="sstar" data-star="${esc(n)}" aria-pressed="${favSt.includes(n)}" aria-label="${esc(T('{s} 즐겨찾기',{s:n}))}">${favSt.includes(n)?'★':'☆'}</button></div>`;
+let suggSel = -1;
+function renderSugg(){
+  const raw = $('q').value, box = $('sugg'); suggSel = -1;
+  $('qClear').hidden = !raw;
+  if(raw.trim()){
+    const hits = searchStations(raw);
+    box.innerHTML = hits.length ? hits.map(n=>stRow(n, raw)).join('')
+      : `<div class="snone">${esc(T('"{q}"와 비슷한 역이 없어요. 영어 역 이름으로 쳐 보세요.',{q:raw}))}</div>`;
+  } else {
+    let h = '';
+    if(favSt.length) h += '<h3>'+T('즐겨찾기 역')+'</h3>' + favSt.map(n=>stRow(n)).join('');
+    if(favs.length) h += '<h3>'+T('즐겨찾기 경로')+'</h3>' + favs.map(([a,b],i)=>`<button class="srow" data-route="${i}"><span class="rk">★</span><span class="sname">${esc(a)} → ${esc(b)}</span></button>`).join('');
+    const rec = recent.filter(n=>!favSt.includes(n));
+    if(rec.length) h += '<h3>'+T('최근 찾은 역')+'</h3>' + rec.map(n=>stRow(n)).join('');
+    box.innerHTML = h + '<div class="snone">'+T('영어로 역 이름을 쳐 보세요. 예: <b>cen</b> → Central, <b>sj</b> → St James, <b>airport</b>. ☆를 누르면 즐겨찾기 역이 돼요.')+'</div>';
+  }
+  box.style.top = document.querySelector('.maphead').offsetHeight + 'px';
+  box.hidden = false; $('q').setAttribute('aria-expanded','true'); hideMenu();
+}
+function closeSugg(){ $('sugg').hidden = true; $('q').setAttribute('aria-expanded','false'); }
+$('q').addEventListener('focus', renderSugg);
+$('q').addEventListener('input', renderSugg);
+$('q').addEventListener('keydown', e=>{
+  const rows = [...$('sugg').querySelectorAll('.srow')];
+  if(e.key==='ArrowDown' || e.key==='ArrowUp'){
+    e.preventDefault(); if(!rows.length) return;
+    suggSel = (suggSel + (e.key==='ArrowDown'?1:-1) + rows.length) % rows.length;
+    rows.forEach((r,i)=>r.classList.toggle('on', i===suggSel)); rows[suggSel].scrollIntoView({block:'nearest'});
+  } else if(e.key==='Enter'){
+    e.preventDefault(); (rows[Math.max(suggSel,0)])?.click();
+  } else if(e.key==='Escape'){ closeSugg(); $('q').blur(); }
+});
+$('qClear').addEventListener('click', ()=>{ $('q').value=''; $('q').focus(); renderSugg(); });
+$('sugg').addEventListener('click', e=>{
+  const star = e.target.closest('.sstar');
+  if(star){ e.stopPropagation(); toggleFavSt(star.dataset.star); renderSugg(); return; }
+  const r = e.target.closest('.srow'); if(!r) return;
+  if(r.dataset.route!==undefined){ closeSugg(); $('q').blur(); const [a,b] = favs[+r.dataset.route]; od.from=a; od.to=b; drawPins(); updateReset(); showRouteOnMap(); return; }
+  focusStation(r.dataset.st);
+});
+// 검색창·목록 밖을 누르면 목록을 닫는다
+document.addEventListener('pointerdown', e=>{ if(!$('sugg').hidden && !e.target.closest('#sugg,.search')) closeSugg(); });
+$('rFav').addEventListener('click', ()=>{
+  if(isFav()){ favs = favs.filter(([a,b])=>!(a===od.from && b===od.to)); toast(T('즐겨찾기에서 뺐어요.')); }
+  else { favs = [[od.from, od.to], ...favs].slice(0,8); toast(T('즐겨찾기에 넣었어요. 노선도 위쪽에서 바로 열 수 있어요.')); }
+  saveFavs(); $('rFav').setAttribute('aria-pressed', isFav()); $('rFav').textContent = isFav()?'★':'☆';
+});
+function openRoute(){
+  closeSheet();
+  $('routeview').hidden = false;
+  renderRoute();
+  $('routeview').scrollTop = 0;
+}
+function renderRoute(){
+  const now = queryTime();
+  $('rFav').setAttribute('aria-pressed', isFav()); $('rFav').textContent = isFav()?'★':'☆';
+  document.querySelectorAll('.rtab').forEach(b=>b.setAttribute('aria-selected', b.dataset.mode===routeMode));
+  const both = findRoutes(now, od.from, od.to), legs = both[routeMode];
+  routeLegs = legs;
+  const endT = L => L ? L[L.length-1].trip.times[L[L.length-1].ai].t : -1;
+  const same = both.fast && both.few && both.fast.length===both.few.length && endT(both.fast)===endT(both.few);
+  const head = `<div class="odpair">${esc(od.from)} → ${esc(od.to)}</div>${whenHTML(now)}`
+    + (same ? '<div class="rsame">'+T(routeMode==='few' ? '가장 빠른 경로가 환승도 가장 적어요.' : '이 경로가 환승도 가장 적어요.')+'</div>' : '');
+  if(!legs){ $('routeHost').innerHTML = head+'<div class="rempty">'+T('앞으로 3시간 안에 갈 수 있는 열차가 없어요(견본 시간표 기준).')+'</div>'; return; }
+  const dep = legs[0].trip.times[legs[0].bi].t, last = legs[legs.length-1], arr = last.trip.times[last.ai].t;
+  const xfers = legs.length-1, wait = dep - now.mod;
+  let html = '';
+  legs.forEach((g, n)=>{
+    const t = g.trip, lc = LINE_COLOR[t.line], b = t.times[g.bi], a = t.times[g.ai];
+    const mids = t.times.slice(g.bi+1, g.ai);
+    html += `<div class="node first" style="--lc:${lc}">
+      <div class="tm"><span class="tbox">${hhmm(b.t)}</span></div>
+      <div class="rail"><span class="circ">${t.line}</span></div>
+      <div class="txt"><div class="sname">${esc(b.st)}</div>
+        <div class="sub">${esc(destTxt(t.dest))} · ${esc(T(t.via))}${t.delay?` · <span class="late">${T('+{n}분 지연',{n:t.delay})}</span>`:''}</div>
+        <button class="stopsBtn" data-leg="${n}" aria-expanded="false">${T('{n}개 역({m}분)',{n:mids.length+1,m:Math.round(a.t-b.t)})} ⇕</button>
+        <ol class="midlist" id="mid${n}" hidden>${mids.map(m=>`<li><span>${esc(m.st)}</span><span class="num">${hhmm(m.t)}</span></li>`).join('')}<li><span>${esc(a.st)} ${T('도착')}</span><span class="num">${hhmm(a.t)}</span></li></ol>
+      </div></div>
+      <div class="node end" style="--lc:${lc}">
+        <div class="tm"><span class="tplain">${hhmm(a.t)}</span></div>
+        <div class="rail"><span class="circ off">${T('하차')}</span></div>
+        <div class="txt"><div class="sname">${esc(a.st)}</div><div class="sub">${n===legs.length-1?T('도착'):T('여기서 갈아타기')}${(()=>{ const d = doorSide(t, g.ai); return d ? ' · <span class="door">'+T(d==='L'?'내리는 문 왼쪽':'내리는 문 오른쪽')+'</span>' : ''; })()}</div></div></div>`;
+    if(n < legs.length-1){
+      const nb = legs[n+1].trip.times[legs[n+1].bi].t;
+      html += `<div class="node walk"><div class="tm"></div><div class="rail"></div>
+        <div class="walkt">🚶 ${T('환승 · 걸어서 약 {a}분',{a:XFER})}${Math.round(nb-a.t-XFER) > 0 ? ' · '+T('기다림 약 {b}분',{b:Math.round(nb-a.t-XFER)}) : ''}</div></div>`;
+    }
+  });
+  $('routeHost').innerHTML = `${head}
+    <div class="sum"><small>${T('소요시간')}</small><span class="big">${T('{n}분',{n:Math.round(arr-dep)})}</span><span class="meta">${xfers?T('환승 {n}회',{n:xfers}):T('환승 없음')} · ${now.planned?T('{t} 이후 첫 열차',{t:hhmm(now.mod)}):(wait<1?T('곧 출발'):T('{n}분 뒤 출발',{n:Math.floor(wait)}))}</span></div>
+    <div class="times"><div>${T('출발')}<b>${hhmm(dep)}</b></div><div>${T('도착')}<b>${hhmm(arr)}</b></div></div>
+    <div class="legs">${html}</div>
+    <div class="ractions"><button class="ract" data-ract="share">⤴ ${T('경로 공유')}</button><button class="ract" data-ract="gmap">🗺 ${T('Google 지도에서 보기')}</button></div>
+    <div class="sample"><b>${T('견본 데이터')}</b> · ${T('시각·환승 시간은 가짜예요. 요금(Opal)과 승강장 번호는 진짜 데이터를 연결한 뒤 넣을게요.')} ${T('내리는 문 방향은 위키백과 역 정보의 승강장 모양으로 추정했어요(공식 자료 아님). 안내 방송을 따르세요.')}</div>`;
+}
+// 앱 안(WebView)이면 앱 본체에 부탁하고, 브라우저면 브라우저 기능을 쓴다
+const toApp = msg => { if(window.ReactNativeWebView){ window.ReactNativeWebView.postMessage(JSON.stringify(msg)); return true; } return false; };
+const placeQ = n => encodeURIComponent(n+' Station, Sydney NSW');
+function routeText(){
+  const legs = routeLegs; if(!legs) return od.from+' → '+od.to;
+  const dep = legs[0].trip.times[legs[0].bi].t, last = legs[legs.length-1], arr = last.trip.times[last.ai].t, x = legs.length-1;
+  const lines = [`Sydney Trains · ${od.from} → ${od.to}`, `${T('{n}분',{n:Math.round(arr-dep)})} · ${x?T('환승 {n}회',{n:x}):T('환승 없음')}`];
+  legs.forEach(g=>{ const b = g.trip.times[g.bi], a = g.trip.times[g.ai]; lines.push(`${hhmm(b.t)} ${b.st} (${g.trip.line}) → ${hhmm(a.t)} ${a.st}`); });
+  return lines.join('\n');
+}
+function shareRoute(){
+  const text = routeText();
+  if(toApp({type:'share', text})) return;
+  if(navigator.share){ navigator.share({text}).catch(()=>{}); return; }
+  (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(()=>toast(T('경로를 복사했어요. 원하는 앱에 붙여 넣으세요.')), ()=>{});
+}
+function openUrl(url){ if(toApp({type:'open', url})) return; window.open(url, '_blank'); }
+function openGmap(){ openUrl(`https://www.google.com/maps/dir/?api=1&origin=${placeQ(od.from)}&destination=${placeQ(od.to)}&travelmode=transit`); }
+$('routeHost').addEventListener('click', e=>{
+  const d = e.target.closest('[data-day]');
+  if(d){ when.day = d.dataset.day==='now' ? 'now' : +d.dataset.day; renderRoute(); return; }
+  const ra = e.target.closest('[data-ract]');
+  if(ra){ ra.dataset.ract==='share' ? shareRoute() : openGmap(); return; }
+  const b = e.target.closest('.stopsBtn'); if(!b) return;
+  const l = $('mid'+b.dataset.leg); l.hidden = !l.hidden; b.setAttribute('aria-expanded', !l.hidden);
+});
+$('routeHost').addEventListener('change', e=>{ if(e.target.id==='whenTime' && e.target.value){ when.time = e.target.value; renderRoute(); } });
+document.querySelector('.rtabs').addEventListener('click', e=>{ const b=e.target.closest('.rtab'); if(b){ routeMode=b.dataset.mode; renderRoute(); } });
+$('rSwap').addEventListener('click', ()=>{ [od.from, od.to] = [od.to, od.from]; drawPins(); updateReset(); renderRoute(); });
+$('rClose').addEventListener('click', ()=>{
+  $('routeview').hidden = true;
+  fitTo(drawRoute(routeLegs)); showRouteBar(routeLegs);   // 닫으면 노선도에 경로를 색으로 표시
+});
+
+// =====================================================================
+// 7) 시작
+// =====================================================================
+let lastW = innerWidth;
+window.addEventListener('resize', ()=>{
+  if(innerWidth!==lastW){ lastW=innerWidth; homeView(); }
+  if(!sheet.hidden) placeSheet(sh.full);
+});
+wide.addEventListener('change', ()=>{ if(!$('boardview').hidden) renderBoard($('boardHost'), true); });
+setInterval(()=>{
+  if(!$('routeview').hidden) return;                // 경로는 보는 동안 고정
+  if(!$('boardview').hidden) renderBoard($('boardHost'), true);
+  else if(!sheet.hidden) renderSheet();
+}, 15000);
+// ----- 언어 바꾸기 -----
+const I18N_NODES = [];
+function collectStatic(){
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for(let n; (n = w.nextNode());){ const k = n.nodeValue.trim(); if(k && L10N[k] && !n.parentElement.closest('script,style,#langMenu')) I18N_NODES.push([n, null, k]); }
+  document.querySelectorAll('[placeholder],[aria-label]').forEach(e=>{
+    for(const a of ['placeholder','aria-label']){ const k = e.getAttribute(a); if(k && L10N[k]) I18N_NODES.push([e, a, k]); }
+  });
+}
+function renderLegend(){
+  $('legend').innerHTML = LINE_ORDER.map(k=>`<span class="chip" style="background:${LINE_COLOR[k]}">${k==='M1'?T('메트로'):k}</span>`).join('');
+}
+function applyLang(lang, first){
+  LANG = ['ko','en','zh','ms','ta','ja'].includes(lang) ? lang : 'ko';
+  try{ localStorage.setItem('lang', LANG); }catch(e){}
+  document.documentElement.lang = {ko:'ko', en:'en', zh:'zh-CN', ms:'ms', ta:'ta', ja:'ja'}[LANG];
+  for(const [n,a,k] of I18N_NODES){
+    const v = T(k);
+    if(a) n.setAttribute(a, v);
+    else { const cur = n.nodeValue.trim(); n.nodeValue = n.nodeValue.replace(cur, v); }
+  }
+  document.querySelectorAll('#langMenu [data-lang]').forEach(b=>b.setAttribute('aria-checked', b.dataset.lang===LANG));
+  $('langBtn').setAttribute('aria-label', T('언어')+' (Lang)');
+  if(first) return;
+  // 열려 있는 화면을 새 언어로 다시 그린다
+  renderLegend(); renderFavs(); drawPins();
+  if(!$('routebar').hidden && shownLegs) showRouteBar(shownLegs);
+  if(!sheet.hidden) renderSheet();
+  if(!$('boardview').hidden) renderBoard($('boardHost'), true);
+  if(!$('routeview').hidden) renderRoute();
+  if(!$('sugg').hidden) renderSugg();
+  if(!$('alerts').hidden) openAlerts(false);
+  if(menuStation) showMenu(menuStation);
+}
+function closeLang(){ $('langMenu').hidden = true; $('langBtn').setAttribute('aria-expanded','false'); }
+$('langBtn').addEventListener('click', e=>{
+  e.stopPropagation();
+  const m = $('langMenu');
+  if(!m.hidden) return closeLang();
+  closeSugg();
+  m.style.top = (document.querySelector('.maphead').offsetHeight + 4) + 'px';
+  m.hidden = false; $('langBtn').setAttribute('aria-expanded','true');
+});
+$('langMenu').addEventListener('click', e=>{
+  const b = e.target.closest('[data-lang]'); if(!b) return;
+  closeLang(); applyLang(b.dataset.lang);
+});
+document.addEventListener('pointerdown', e=>{ if(!$('langMenu').hidden && !e.target.closest('#langMenu,#langBtn')) closeLang(); });
+
+// 안드로이드 앱의 뒤로 가기 버튼: 열린 화면을 하나씩 닫고, 더 닫을 게 없으면 앱 종료를 요청
+window.sydrailBack = () => {
+  if(!$('langMenu').hidden) return closeLang();
+  if(!$('alerts').hidden) return closeAlerts();
+  if(!$('sugg').hidden){ closeSugg(); $('q').blur(); return; }
+  if(!$('routeview').hidden) return $('rClose').click();
+  if(!$('boardview').hidden) return $('bBack').click();
+  if(!sheet.hidden) return sh.full ? placeSheet(false) : closeSheet();
+  if(!$('menu').hidden) return hideMenu();
+  window.ReactNativeWebView?.postMessage('exit');
+};
+collectStatic();                                     // 화면에 처음부터 있는 문구(버튼·안내)를 기억해 두고 언어에 맞게 바꾼다
+drawMap();
+homeView();
+applyLang(LANG, true);
+renderFavs();
+fetchAlerts();                                       // 앱을 열 때: 실시간 운행 안내를 받아, 아직 안 본 것이 있으면 먼저 보여 준다
+setInterval(fetchAlerts, 10*60000);
+</script>
+</body></html>
