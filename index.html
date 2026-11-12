@@ -946,9 +946,43 @@ const svg = $('map');
 const el = (tag, attrs={}, parent=svg) => { const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); parent.appendChild(e); return e; };
 let pinLayer, lineLayer, routeLayer, dotLayer;
 
+// 서로 다른 역을 잇지만 노선도에서 같은 자리를 지나는 선(한 선이 다른 선에 가려 끊겨 보임)도 '함께 지나는 구간'으로 본다(2026-11-13 사용자: 뉴욕 A·C가 G에 가려 끊겨 보임).
+// 겹치는 곳의 끝점마다 선을 잘라 같은 점(@x,y)을 넣고, 구간 묶음은 역 이름이 아닌 좌표로 센다 → 가늘게 나란히 그려진다.
+let _splitDone = false;
+function splitOverlaps(){
+  if(_splitDone) return; _splitDone = true;
+  const segs = [];
+  DRAW.forEach((D,di)=>{ for(let i=0;i<D.path.length-1;i++){ const A = coord(D.path[i]), B = coord(D.path[i+1]); if(Math.hypot(B[0]-A[0], B[1]-A[1]) > 1) segs.push({di, i, A, B}); } });
+  const cuts = segs.map(()=>[]);
+  for(let x=0;x<segs.length;x++){
+    const s = segs[x], ux = s.B[0]-s.A[0], uy = s.B[1]-s.A[1], L = Math.hypot(ux,uy), ex = ux/L, ey = uy/L;
+    for(let y=0;y<segs.length;y++){
+      const t = segs[y];
+      if(x===y || DRAW[s.di].id===DRAW[t.di].id) continue;
+      const vx = t.B[0]-t.A[0], vy = t.B[1]-t.A[1], M = Math.hypot(vx,vy);
+      if(Math.abs(ux*vy-uy*vx) > 0.02*L*M) continue;                         // 나란하지 않음
+      if(Math.abs((t.A[0]-s.A[0])*ey-(t.A[1]-s.A[1])*ex) > 3) continue;       // 같은 줄이 아님
+      const t1 = (t.A[0]-s.A[0])*ex+(t.A[1]-s.A[1])*ey, t2 = (t.B[0]-s.A[0])*ex+(t.B[1]-s.A[1])*ey;
+      if(Math.min(Math.max(t1,t2), L) - Math.max(Math.min(t1,t2), 0) < 4) continue;   // 거의 안 겹침
+      if(t1 > 2 && t1 < L-2) cuts[x].push([t1, t.A]);
+      if(t2 > 2 && t2 < L-2) cuts[x].push([t2, t.B]);
+    }
+  }
+  const byD = {};
+  segs.forEach((s,x)=>{ if(cuts[x].length) (byD[s.di] ||= []).push([s, cuts[x]]); });
+  for(const di in byD){
+    const D = DRAW[di];
+    for(const [s, cs] of byD[di].sort((a,b)=>b[0].i-a[0].i)){                // 뒤에서부터 넣어야 번호가 안 밀림
+      const seen = new Set(), pts = cs.sort((a,b)=>a[0]-b[0]).map(([t,p])=>'@'+p[0].toFixed(1)+','+p[1].toFixed(1)).filter(k=>!seen.has(k) && seen.add(k));
+      D.path.splice(s.i+1, 0, ...pts);
+    }
+  }
+}
+const _ck = a => { const c = coord(a); return Math.round(c[0])+','+Math.round(c[1]); };
 function drawMap(){
   // 1) 구간마다 지나는 노선 모으기
-  const segKey = (a,b) => a<b ? a+'|'+b : b+'|'+a;
+  splitOverlaps();                                     // 다른 역을 잇지만 같은 자리를 지나는 선도 함께 지나는 구간으로(좌표로 셈)
+  const segKey = (a,b) => { const x = _ck(a), y = _ck(b); return x<y ? x+'|'+y : y+'|'+x; };
   const segLines = {}, stLines = {}, stMax = {};
   for(const D of DRAW) for(let i=0;i<D.path.length-1;i++){
     const k = segKey(D.path[i], D.path[i+1]);
