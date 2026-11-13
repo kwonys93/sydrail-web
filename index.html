@@ -854,7 +854,7 @@ function nextRoutes(q, both){
   }
   return out;
 }
-let routePick = null;   // 다음 열차 목록에서 고른 열차(없으면 가장 좋은 경로)
+let routePick = null, routePickT = null;   // routePickT: 누른 다음 열차의 출발 시각(분)   // 다음 열차 목록에서 고른 열차(없으면 가장 좋은 경로)
 function findRoutes(now, from, to){
   const trips = getTrips(now), K = 4;
   const lab = [{[from]:{t:now.mod}}];
@@ -1776,7 +1776,7 @@ $('rFav').addEventListener('click', ()=>{
   saveFavs(); $('rFav').setAttribute('aria-pressed', isFav()); $('rFav').textContent = isFav()?'★':'☆';
 });
 function openRoute(){
-  closeSheet(); routePick = null;
+  closeSheet(); routePick = null; routePickT = null;
   if(geo.on) startGeo(false);
   $('routeview').hidden = false;
   renderRoute();
@@ -1790,6 +1790,14 @@ function renderRoute(){
   let legs = both[routeMode];
   const picked = routePick && nexts.find(L=>jkey(L)===routePick);
   if(picked) legs = picked; else routePick = null;
+  // 다음 열차 줄을 누르면 그 출발 시각 기준으로 경로를 다시 계산(경로 찾기를 그 시각으로). 아래로 당기면 지금 기준으로 돌아감(2026-11-14)
+  if(routePickT!==null && when.day==='now'){
+    const r = getRoutes({...now, planned:true, mod:routePickT}, od.from, od.to);
+    const cands = (r.all || [r.fast, r.few].filter(Boolean)).filter(L=>L[0].trip.times[L[0].bi].t >= routePickT - 0.6);
+    const best = cands.sort((a,b)=>{ const da = a[0].trip.times[a[0].bi].t, db = b[0].trip.times[b[0].bi].t; return (Math.abs(da-routePickT) < 0.6 ? 0 : 1) - (Math.abs(db-routePickT) < 0.6 ? 0 : 1) || a[a.length-1].trip.times[a[a.length-1].ai].t - b[b.length-1].trip.times[b[b.length-1].ai].t; })[0];
+    if(best) legs = best;
+    else if(!r.live && live.trip[tripKey({...now, planned:true, mod:routePickT}, od.from, od.to)]?.loading) setTimeout(()=>{ if(routePickT!==null && !$('routeview').hidden) renderRoute(); }, 2000);
+  }
   routeLegs = legs;
   const endT = L => L ? L[L.length-1].trip.times[L[L.length-1].ai].t : -1;
   const same = both.fast && both.few && both.fast.length===both.few.length && endT(both.fast)===endT(both.few);
@@ -1832,7 +1840,7 @@ function renderRoute(){
     <h3 class="nexth">${T('다음 열차')}</h3>
     <div class="nlist">${nexts.map(L=>{ const d = L[0].trip.times[L[0].bi].t, z = L[L.length-1], e = z.trip.times[z.ai].t, w = Math.round(d - now.mod), dl = Math.max(...L.map(g=>g.trip.delay||0));
       const iss = routeIssues(L, now), bl = iss.some(x=>x.kind==='block'||x.kind==='bus');
-      return `<button class="nrow" data-pick="${esc(jkey(L))}" aria-pressed="${jkey(L)===jkey(legs)}"><span class="nt">${bl?'⚠ ':''}${hhmm(d)}</span><span class="nw">${now.planned?'':w<1?T('곧 출발'):T('{n}분 뒤',{n:w})}</span>`
+      return `<button class="nrow" data-pick="${esc(jkey(L))}" data-dep="${d}" aria-pressed="${routePickT!==null ? Math.abs(d - routePickT) < 0.6 : jkey(L)===jkey(legs)}"><span class="nt">${bl?'⚠ ':''}${hhmm(d)}</span><span class="nw">${now.planned?'':w<1?T('곧 출발'):T('{n}분 뒤',{n:w})}</span>`
         + `<span class="nl">${L.map(g=>`<span class="badge" style="background:${LINE_COLOR[g.trip.line]||'var(--muted)'}">${g.trip.line==='M1'?T('메트로'):esc(g.trip.line)}</span>`).join('→')}${L[0].trip.platform?' '+platTag(L[0].trip.platform):''}${dl?` <span class="late">${T('+{n}분 지연',{n:dl})}</span>`:''}</span>`
         + `<span class="nd">→ ${hhmm(e)}<br>${T('{n}분',{n:Math.round(e-d)})}</span></button>`; }).join('')}</div>
     <div class="ractions"><button class="ract" data-ract="share">⤴ ${T('경로 공유')}</button><button class="ract" data-ract="gmap">🗺 ${T('Google 지도에서 보기')}</button></div>
@@ -1965,10 +1973,10 @@ $('routeHost').addEventListener('change', e=>{
     when.day = Math.max(0, Math.round((Date.UTC(y, m-1, d) - d0)/864e5)); renderRoute();
   }
 });
-$('routeHost').addEventListener('click', e=>{ const n = e.target.closest('[data-pick]'); if(n){ routePick = n.dataset.pick; renderRoute(); $('routeview').scrollTo({top:0, behavior:'smooth'}); } });
+$('routeHost').addEventListener('click', e=>{ const n = e.target.closest('[data-pick]'); if(n){ routePick = n.dataset.pick; routePickT = n.dataset.dep ? +n.dataset.dep : null; renderRoute(); $('routeview').scrollTo({top:0, behavior:'smooth'}); } });
 $('routeHost').addEventListener('click', e=>{ const b = e.target.closest('[data-fare]'); if(!b) return; fareType = b.dataset.fare; try{ localStorage.setItem('fareType', fareType); }catch(err){} renderRoute(); });
 document.querySelector('.rtabs').addEventListener('click', e=>{ const b=e.target.closest('.rtab'); if(b){ routeMode=b.dataset.mode; routePick=null; renderRoute(); } });
-$('rSwap').addEventListener('click', ()=>{ [od.from, od.to] = [od.to, od.from]; routePick = null; drawPins(); updateReset(); renderRoute(); });
+$('rSwap').addEventListener('click', ()=>{ [od.from, od.to] = [od.to, od.from]; routePick = null; routePickT = null; drawPins(); updateReset(); renderRoute(); });
 $('rClose').addEventListener('click', ()=>{
   $('routeview').hidden = true; stopGeo();
   fitTo(drawRoute(routeLegs)); showRouteBar(routeLegs);   // 닫으면 노선도에 경로를 색으로 표시
@@ -2334,6 +2342,7 @@ function refreshBoard(){
   toast(T('지금 시각 기준으로 열차 시간을 새로 받아요.'));
 }
 function refreshRoute(){
+  routePick = null; routePickT = null;                                // 아래로 당기면 지금 시각 기준으로 되돌림
   for(const k of Object.keys(live.trip)) if(k.startsWith(od.from+'|'+od.to+'|') && !live.trip[k].raw) delete live.trip[k];
   const q = queryTime(); delete live.trip[tripKey(q, od.from, od.to)];
   renderRoute(); if(geo.on) startGeo(true);
