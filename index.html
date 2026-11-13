@@ -314,9 +314,10 @@ header.bh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space
 .times div{padding:14px 8px;font-size:22px;display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:0 8px}
 .times div+div{border-left:1px solid var(--rule)}
 .times b{font-family:var(--display);font-size:30px}
-.times b.depgo{color:#3B9BFF;font-weight:800;animation:depblink 1s steps(2,start) infinite}
+.times b.depgo,.depw.depgo{color:#3B9BFF;font-weight:800;animation:depblink 1s steps(2,start) infinite}
+.depw{display:inline-block;font-family:var(--display);font-size:30px;font-weight:800;color:var(--ink);margin-left:2px}
 @keyframes depblink{to{visibility:hidden}}
-@media (prefers-reduced-motion:reduce){.times b.depgo{animation:none}}
+@media (prefers-reduced-motion:reduce){.times b.depgo,.depw.depgo{animation:none}}
 .legs{display:flex;flex-direction:column}
 .node{display:grid;grid-template-columns:62px 34px minmax(0,1fr);column-gap:10px}
 .node .tm{padding-top:6px;text-align:right}
@@ -1754,7 +1755,7 @@ function renderRoute(){
     }
   });
   $('routeHost').innerHTML = `${head}
-    <div class="sum"><small>${T('소요시간')}</small><span class="big">${T('{n}분',{n:Math.round(arr-dep)})}</span><span class="meta">${xfers?T('환승 {n}회',{n:xfers}):T('환승 없음')} · ${now.planned?T('{t} 이후 첫 열차',{t:hhmm(now.mod)}):(wait<1?T('곧 출발'):T('{n}분 뒤 출발',{n:Math.floor(wait)}))}</span></div>
+    <div class="sum"><small>${T('소요시간')}</small><span class="big">${T('{n}분',{n:Math.round(arr-dep)})}</span><span class="meta">${xfers?T('환승 {n}회',{n:xfers}):T('환승 없음')} · ${now.planned?T('{t} 이후 첫 열차',{t:hhmm(now.mod)}):`<b id="depW" class="depw${boardedNow(legs, now) ? '' : ' depgo'}">${wait<1?T('곧 출발'):T('{n}분 뒤 출발',{n:Math.floor(wait)})}</b>`}</span></div>
     <div class="times"><div>${T('출발')}<b id="depT" class="${boardedNow(legs, now) ? '' : 'depgo'}">${hhmm(dep)}</b></div><div>${T('도착')}<b>${hhmm(arr)}</b></div><div>${T('요금')}<b>${fare.nonOpal ? '—' : aud(fare.total)}</b></div></div>
     <div class="seg faretype" role="group" aria-label="${T('카드 종류')}">${Object.keys(OPAL).map(k=>`<button data-fare="${k}" aria-pressed="${k===fareType}">${T(FARE_NAMES[k])}</button>`).join('')}</div>
     ${fare.nonOpal ? `<p class="farenote">${T('Lithgow 너머(Rydal·Tarana·Bathurst)는 Opal 구간 밖이에요. NSW TrainLink 승차권을 미리 사야 해요.')}</p>` : ''}
@@ -2019,11 +2020,11 @@ function pollTrain(seq){
   const g = routeLegs[seq[Math.max(0, Math.min(seq.length-2, Math.floor(tp)))].leg] || routeLegs[0];
   const ids = [g.trip.rt, g.trip.gt].filter(Boolean); if(!ids.length) return;
   const key = ids.join(','); if(trainLive.key !== key){ trainLive.key = key; trainLive.data = null; }
-  if(trainLive.busy || Date.now() - trainLive.at < 15000) return;
+  if(trainLive.busy || Date.now() - trainLive.at < (alarm.on && !alarm.fired ? 8000 : 15000)) return;   // 알림 기다리는 중이면 더 자주
   trainLive.busy = true; trainLive.at = Date.now();
   fetch(LIVE_API+'/trainpos?ids='+encodeURIComponent(key)).then(r=>r.json()).then(j=>{ trainLive.busy = false; if(trainLive.key===key){ trainLive.data = j.found ? {...j, got:Date.now(), leg:routeLegs.indexOf(g)} : null; updateProgress(); } }).catch(()=>{ trainLive.busy = false; });
 }
-let routeDone = null;                                                     // 도착 처리한 경로(한 번만)
+let routeDone = null, routeArr = null;                                                     // 도착 처리한 경로(한 번만)
 function whereOnRoute(seq, p){
   const kx = 111.32*Math.cos(p.lat*Math.PI/180), ky = 110.57;
   const xy = n => { const c = STOPLL[n]; return c ? [(c[1]-p.lon)*kx, (c[0]-p.lat)*ky] : null; };   // 내 위치가 (0,0)인 km 좌표
@@ -2084,13 +2085,13 @@ function updateProgress(){
     }
   }
   // 내리기 알림: 도착역 바로 앞 역을 떠나면(위치) — 시각으로는 alarm.at(그 역 출발 시각)
-  if(src && alarm.on && !alarm.fired && n >= 2 && pos > n-2 + 0.06) alarmFire(src);
-  const dt = document.getElementById('depT'); if(dt && pos!==null && pos > 0.02) dt.classList.remove('depgo');   // 열차를 탔으면 출발 시각 깜박임 끝
-  else if(dt && boardedNow(legs)) dt.classList.remove('depgo');
+  if(src && alarm.on && !alarm.fired && n >= 2 && pos > n-2 + 0.01) alarmFire(src);   // 앞 역을 떠나자마자
+  for(const dt of [document.getElementById('depT'), document.getElementById('depW')]) if(dt && ((pos!==null && pos > 0.02) || boardedNow(legs))) dt.classList.remove('depgo');   // 열차를 탔으면 깜박임 끝(원래 색)
   // 도착: 경로 완료 → 알림, 경로 화면 닫고 경로 지우고 노선도로
-  if(src && pos >= n-1 - 0.001 && (src!=='time' || geo.on || alarm.on)){
+  if(src && pos >= n-1 - 0.001 && (src!=='time' || geo.on || alarm.on)){       // 도착을 처음 확인하고 3분 뒤에 완료(2026-11-13 사용자: 너무 일찍 완료됨)
     const key = od.from+'>'+od.to+'@'+seq[0].dep;
-    if(routeDone !== key){ routeDone = key; setTimeout(()=>finishRoute(seq[n-1].st), 1500); }
+    if(!routeArr || routeArr.key !== key) routeArr = {key, at:Date.now()};
+    else if(routeDone !== key && Date.now() - routeArr.at >= 180000){ routeDone = key; finishRoute(seq[n-1].st); }
   }
   const X = i => pad + i*W;
   let tr = '';
@@ -2109,7 +2110,7 @@ function updateProgress(){
   sc.scrollLeft = pos!==null ? X(pos) - sc.clientWidth/2 : (keep || 0);   // 내 위치가 가운데 오게
 }
 document.addEventListener('click', e=>{ if(e.target.closest('#geoBtn')) startGeo(true); });
-setInterval(()=>{ if(!$('routeview').hidden) updateProgress(); }, 10000);   // 시간·열차 위치로도 움직이게(폰 위치가 안 바뀌어도)
+setInterval(()=>{ if(!$('routeview').hidden) updateProgress(); }, 5000);   // 시간·열차 위치로도 움직이게(폰 위치가 안 바뀌어도)
 function finishRoute(dest){
   try{ navigator.vibrate && navigator.vibrate([300,150,300]); }catch(e){}
   alarm = {on:false}; saveAlarm(); toApp({type:'alarm-cancel'});
@@ -2188,7 +2189,7 @@ function alarmTarget(legs, q){   // 도착역 바로 앞 정차역과 그 도착
   legs.forEach(g=>g.trip.times.slice(g.bi, g.ai+1).forEach(x=>{ if(!seq.length || seq[seq.length-1].st!==x.st) seq.push(x); }));
   if(seq.length < 2) return null;
   const prev = seq[seq.length-2], dest = seq[seq.length-1];
-  return {prev:prev.st, dest:dest.st, at:sydEpoch(q.ymd, prev.t) + 30000, arr:sydEpoch(q.ymd, dest.t), key:od.from+'>'+od.to+'@'+q.ymd};   // 앞 역 출발 30초 뒤
+  return {prev:prev.st, dest:dest.st, at:sydEpoch(q.ymd, prev.t), arr:sydEpoch(q.ymd, dest.t), key:od.from+'>'+od.to+'@'+q.ymd};   // 앞 역 출발 시각(실시간 늦음 반영)
 }
 function alarmHTML(legs, q){
   const tg = alarmTarget(legs, q); if(!tg) return '';
@@ -2228,7 +2229,7 @@ async function alarmFire(why){
   document.body.appendChild(pop);
   pop.querySelector('#alarmOk').onclick = ()=>{ pop.remove(); alarm = {on:false}; saveAlarm(); if(!$('routeview').hidden) renderRoute(); };
 }
-setInterval(()=>{ if(alarm.on && !alarm.fired && Date.now() >= alarm.at) alarmFire('time'); }, 10000);
+setInterval(()=>{ if(alarm.on && !alarm.fired && Date.now() >= alarm.at) alarmFire('time'); }, 5000);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && alarm.on && !alarm.fired && Date.now() >= alarm.at) alarmFire('time'); });
 $('routeHost').addEventListener('click', e=>{ if(e.target.closest('#alarmBtn')) alarmToggle(); });
 // ----- 아래로 당겨서 새로고침(역 상세·경로 화면): 지금 시각 기준으로 열차 시간을 새로 받는다 -----
