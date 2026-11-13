@@ -1098,8 +1098,7 @@ function showRouteBar(legs){
 function updateReset(){ $('resetBtn').hidden = !(od.from || od.to); }
 function resetOD(){
   od.from = null; od.to = null;
-  drawPins(); drawRoute(null); showRouteBar(null); closeSheet(); updateReset();
-  toast(T('출발·도착을 지웠어요.'));
+  drawPins(); drawRoute(null); showRouteBar(null); closeSheet(); updateReset();   // 알림 문구는 뺌(즐겨찾기 경로를 가려서, 2026-11-14 사용자)
 }
 $('resetBtn').addEventListener('click', resetOD);
 $('routebar').addEventListener('click', ()=>openRoute());
