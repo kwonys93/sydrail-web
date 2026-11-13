@@ -1518,13 +1518,29 @@ let routeMode = 'fast', routeLegs = null;
 const xferOpen = new Set(), xferShow = {};   // 펼친 역마다 보여 줄 개수(처음 5개, 더 보기마다 5개씩)
 function xferHTML(g, prev, q, n){
   const st = g.trip.times[g.bi].st, to = g.trip.times[g.ai].st, arrHere = prev.trip.times[prev.ai].t;
-  const all = departuresAt(q, st, to).filter(d=>d.goes && d.dep >= arrHere - 0.5), show = xferShow[n] || 5;
+  const show = xferShow[n] || 5;
+  // 교통국 경로 찾기(실시간 반영, 10개씩)를 그 역 → 도착역으로, 앞 열차가 닿는 시각부터 이어서 부른다 — 아래 '다음 열차'와 같은 자료(2026-11-14)
+  let all = [], m = arrHere - 0.5, pending = false;
+  for(let k=0; k<6 && all.length < show + 5; k++){
+    const r = getRoutes({...q, planned:true, mod:m}, st, to);
+    if(!r.live){ pending = !!live.trip[tripKey({...q, planned:true, mod:m}, st, to)]?.loading; break; }   // 받는 중일 때만 다시 그림
+    const direct = (r.all || []).filter(L=>L.length===1 && L[0].trip.times[L[0].bi].t >= m - 0.5)
+      .map(L=>({trip:L[0].trip, dep:L[0].trip.times[L[0].bi].t, targetAt:L[0].trip.times[L[0].ai].t}))
+      .filter(d=>!all.some(x=>Math.abs(x.dep - d.dep) < 1));
+    if(!direct.length) break;
+    all.push(...direct); m = direct[direct.length-1].dep + 1;
+  }
+  all.forEach(d=>{ d.away = d.dep - (q.planned ? q.mod : sydneyNow().mod); });
+  if(pending) setTimeout(()=>{ if(xferOpen.has(n) && !$('routeview').hidden) renderRoute(); }, 2500);   // 받는 중이면 잠시 뒤 다시 그림
+  if(!all.length){                                                   // 경로 찾기를 못 받으면 예전처럼 역 출발 정보 + 시간표
+    all = departuresAt(q, st, to).filter(d=>d.goes && d.dep >= arrHere - 0.5);
   // 실시간은 약 90분 앞까지라 한 시간에 한 대 다니는 노선(블루마운틴 등)은 1~2개뿐 → 그 뒤는 공식 시간표로 이어 붙인다(2026-11-14)
   let m = all.length ? all[all.length-1].dep : arrHere - 0.5;
   for(let k=0; k<10 && all.length < show + 5; k++){
     const more = departuresAt({...q, planned:true, mod:m + 0.5}, st, to).filter(d=>d.goes && d.dep > m + 0.5 && !all.some(x=>Math.abs(x.dep - d.dep) < 1 && x.trip.line===d.trip.line));
     if(more.length){ more.forEach(d=>{ d.tt = true; d.away = d.dep - q.mod; }); all.push(...more); m = more[more.length-1].dep; } else m += 75;
     if(m - arrHere > 600) break;
+  }
   }
   const list = all.slice(0, show);
   if(!list.length) return `<div class="xflist"><div class="snone">${T('여기서 {d}까지 가는 열차 정보를 아직 받지 못했어요. 잠시 뒤 다시 눌러 보세요.',{d:esc(to)})}</div></div>`;
