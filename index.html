@@ -6,7 +6,7 @@
 /* 레이아웃: 전체 화면 노선도 → 역을 누르면 [출발·도착·상세] 메뉴.
    출발 = 아래에서 올라오는 창(끌어 올리면 전체 화면) / 도착 = 경로(소요시간·환승) 화면 / 상세 = 역 출발 보드.
    펼친 화면(폭 700px 이상)에서는 창·경로 화면을 가운데 760px로 */
-:root{
+:root{ --hi:#007C91;
   --bg:#EDF1F3; --surface:#FFFFFF; --ink:#14212B; --muted:#5B6B76; --rule:#D5DDE2;
   --accent:#A85A22; --ok:#1C7A4B; --ok-bg:#E2F2E9; --no:#7D8893; --no-bg:#EEF0F2; --late:#B0471A;
   --menu:#2A3640; --menu-ink:#F2F5F7; --shadow:0 -6px 24px rgba(20,33,43,.18);
@@ -15,12 +15,12 @@
   --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
   --body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){ --hi:#00E5FF;
   --bg:#0F171D; --surface:#172129; --ink:#E6EDF1; --muted:#93A3AE; --rule:#26343E;
   --accent:#D9925A; --ok:#4CC38A; --ok-bg:#16352A; --no:#7F8D98; --no-bg:#1D2932; --late:#F0905E;
   --menu:#E6EDF1; --menu-ink:#14212B; --shadow:0 -6px 24px rgba(0,0,0,.5);
   --t1:#F2AE3D; --t2:#3DB3E6; --t3:#EE7650; --t4:#5B93E0; --t5:#E060AE; --t6:#B98058; --t7:#9AAAB5; --t8:#35B871; --t9:#F0646C; --m1:#2FB3B0; --bmt:#F7B54D; --ccn:#F0646C; --sco:#4E9BE0; --shl:#35B871; --hun:#C9727A; color-scheme:dark }}
-:root[data-theme="dark"]{
+:root[data-theme="dark"]{ --hi:#00E5FF;
   --bg:#0F171D; --surface:#172129; --ink:#E6EDF1; --muted:#93A3AE; --rule:#26343E;
   --accent:#D9925A; --ok:#4CC38A; --ok-bg:#16352A; --no:#7F8D98; --no-bg:#1D2932; --late:#F0905E;
   --menu:#E6EDF1; --menu-ink:#14212B; --shadow:0 -6px 24px rgba(0,0,0,.5);
@@ -314,7 +314,7 @@ header.bh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space
 .times div{padding:14px 8px;font-size:22px;display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:0 8px}
 .times div+div{border-left:1px solid var(--rule)}
 .times b{font-family:var(--display);font-size:30px}
-.times b.depgo,.depw.depgo{color:#3B9BFF;font-weight:800}   /* 깜박임은 뺌(2026-11-13 사용자) — 타기 전 파랑, 타면 원래 색 */
+.times b.depgo,.depw.depgo{color:var(--hi);font-weight:800}   /* 밝은 청록(2026-11-13 사용자) */   /* 깜박임은 뺌(2026-11-13 사용자) — 타기 전 파랑, 타면 원래 색 */
 .depw{display:inline-block;font-family:var(--display);font-size:30px;font-weight:800;color:var(--ink);margin-left:2px}
 @keyframes depblink{to{opacity:.35}}                 /* 버스 앱 정류장처럼: 사라지지 않고 옅어졌다 진해짐 */
 @media (prefers-reduced-motion:reduce){.times b.depgo,.depw.depgo{animation:none}}
