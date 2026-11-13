@@ -314,9 +314,9 @@ header.bh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space
 .times div{padding:14px 8px;font-size:22px;display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:0 8px}
 .times div+div{border-left:1px solid var(--rule)}
 .times b{font-family:var(--display);font-size:30px}
-.times b.depgo,.depw.depgo{color:#3B9BFF;font-weight:800;animation:depblink 2s steps(2,start) infinite}
+.times b.depgo,.depw.depgo{color:#3B9BFF;font-weight:800;animation:depblink 3.5s ease-in-out infinite alternate}
 .depw{display:inline-block;font-family:var(--display);font-size:30px;font-weight:800;color:var(--ink);margin-left:2px}
-@keyframes depblink{to{visibility:hidden}}
+@keyframes depblink{to{opacity:.35}}                 /* 버스 앱 정류장처럼: 사라지지 않고 옅어졌다 진해짐 */
 @media (prefers-reduced-motion:reduce){.times b.depgo,.depw.depgo{animation:none}}
 .legs{display:flex;flex-direction:column}
 .node{display:grid;grid-template-columns:62px 34px minmax(0,1fr);column-gap:10px}
