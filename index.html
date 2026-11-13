@@ -825,7 +825,28 @@ function getRoutes(q, a, b){
 // 경로 화면 아래 '다음 열차' 목록: 실시간이면 교통국 결과 전부, 견본이면 시각을 늦춰 가며 다시 찾기
 const jkey = L => L.map(g=>g.trip.line+'@'+Math.round(g.trip.times[g.bi].s ?? g.trip.times[g.bi].t)).join('>');
 function nextRoutes(q, both){
-  if(both.all) return both.all.slice(0, 8);
+  if(both.all){
+    // 경로 찾기는 도착이 같은 열차를 하나로 묶어 출발 간격이 길게 나온다(2026-11-14 사용자) → 출발역에서 실제로 떠나는 열차마다 한 줄,
+    // 그 열차를 타면 도착하는 시각 = 그 뒤에 떠나는 경로들 중 가장 이른 도착(갈아타는 열차는 경로 찾기 결과 그대로)
+    const all = both.all, dep0 = L => L[0].trip.times[L[0].bi].t, arrT = L => { const z = L[L.length-1]; return z.trip.times[z.ai].t; };
+    const firstTo = all[0] && all[0][0].trip.times[all[0][0].ai].st, out = [], seen = new Set();
+    if(firstTo && !q.planned){
+      for(const d of departuresAt(q, od.from, firstTo).filter(d=>d.goes && !d.trip.cancelled)){
+        const later = all.filter(L=>dep0(L) >= d.dep - 0.5); if(!later.length) break;
+        const J = later.reduce((a, L)=>arrT(L) < arrT(a) ? L : a);
+        const k = d.trip.times.findIndex((x, i)=>i > d.i && x.st===firstTo); if(k < 0) continue;
+        const leg = {trip:d.trip, bi:d.i, ai:k};
+        let L2;
+        if(J.length===1) L2 = Math.abs(dep0(J) - d.dep) < 0.6 ? J : (firstTo===od.to ? [leg] : J);
+        else L2 = J[1].trip.times[J[1].bi].t >= d.trip.times[k].t + 2 ? [leg, ...J.slice(1)] : J;
+        const key = Math.round(d.dep) + '>' + Math.round(arrT(L2));
+        if(seen.has(key)) continue; seen.add(key); out.push(L2);
+        if(out.length >= 10) break;
+      }
+      if(out.length >= 3) return out;
+    }
+    return all.slice(0, 8);
+  }
   const out = []; let m = q.mod;
   for(let i=0; i<6; i++){
     const L = findRoutes({...q, mod:m}, od.from, od.to)[routeMode]; if(!L) break;
