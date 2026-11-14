@@ -87,7 +87,10 @@ html,body,#map,#map *{-webkit-tap-highlight-color:transparent}
 @keyframes rtdraw{to{stroke-dashoffset:0}}
 /* 경로 진행 띠(열차 안 화면처럼): 내 위치까지 빨갛게, 끝은 깜박임 */
 .prog{border:1px solid var(--rule);border-radius:10px;background:var(--surface);padding:10px 0 4px}
-.ptxt{padding:0 12px;font-size:14px;font-weight:700}.ptxt small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
+.ptxt{padding:0 12px;font-size:14px;font-weight:700}
+.ptxt .pmain{display:block;font-size:28px;line-height:1.2;color:var(--hi);font-weight:800}   /* 지금 어디 — 크게·시안(2026-11-14 사용자) */
+.ptxt .prem{display:block;font-size:36px;line-height:1.25;color:var(--hi);font-weight:800;margin-top:2px}
+.pmin{position:absolute;top:2px;transform:translateX(-50%);font-size:12.5px;font-weight:800;color:var(--hi);white-space:nowrap}.ptxt small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
 .pbtn{margin:0 12px;border:1px solid var(--rule);border-radius:999px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;padding:7px 14px;cursor:pointer}
 .pscroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}.pscroll::-webkit-scrollbar{display:none}
 .ptrack{position:relative;height:118px}
@@ -2161,7 +2164,7 @@ function updateProgress(){
   const host = document.getElementById('rprog'); if(!host || $('routeview').hidden) return;
   const legs = routeLegs; if(!legs){ host.innerHTML = ''; return; }
   const seq = routeSeq(legs), n = seq.length, W = 58, pad = 30;
-  let pos = null, txt = '', sub = '', src = null;
+  let pos = null, txt = '', sub = '', src = null, remTxt = '';
   // 어느 자료로 위치를 잡나: ① 폰 위치가 정확하고 새것(±150m, 60초 안) ② 열차 실시간 위치(지하에서도) ③ 시간표(실시간 늦음 반영)
   const m = routeNowMod(), tp = timePos(seq, m), started = tp >= 0;
   pollTrain(seq);
@@ -2186,7 +2189,8 @@ function updateProgress(){
     if(pos >= n-1) txt = '🏁 ' + T('{s}에 도착했어요', {s:seq[n-1].st});
     else if(f < 0.08) txt = '🚆 ' + T('지금 {s}역', {s:a});
     else txt = '🚆 ' + T('지금 {a} → {b} 사이', {a, b});
-    sub = (pos < n-1 ? T('도착까지 {n}분 ({t} 도착)', {n:Math.max(0, Math.round(seq[n-1].t - m)), t:hhmm(seq[n-1].t)}) + ' · ' + T('{d}까지 {m}개 역 남음', {d:seq[n-1].st, m:Math.max(1, left)}) + ' · ' : '')
+    if(pos < n-1) remTxt = T('도착까지 {n}분 ({t} 도착)', {n:Math.max(0, Math.round(seq[n-1].t - m)), t:hhmm(seq[n-1].t)});
+    sub = (pos < n-1 ? T('{d}까지 {m}개 역 남음', {d:seq[n-1].st, m:Math.max(1, left)}) + ' · ' : '')
       + (src==='train' ? T('열차 실시간 위치 기준({s}초 전) — 지하에서도 돼요', {s:Math.max(0, Math.round(Date.now()/1000 - (tl.ts || tl.got/1000)))}) : T('시간표·실시간 늦음 기준'));
     if(!geo.on) sub += ' · ' + T('📍 내 위치도 켜면 더 정확해요');
   }
@@ -2229,6 +2233,7 @@ function updateProgress(){
   const X = i => pad + i*W;
   let tr = '';
   for(let i=0; i<n-1; i++) tr += `<span class="pseg" style="left:${X(i)}px;width:${W}px;background:${seq[i+1].x && seq[i].col!==seq[i+1].col ? seq[i].col : seq[i+1].col}"></span>`;
+  for(let i=0; i<n-1; i++){ if(pos!==null && i < Math.floor(pos)) continue; const dm = Math.round(seq[i+1].t - seq[i].dep); if(dm > 0) tr += `<span class="pmin" style="left:${X(i)+W/2}px">${T('{n}분',{n:dm})}</span>`; }   // 역 사이 걸리는 분(2026-11-14)
   if(pos!==null && pos > 0) tr += `<span class="pfill" style="left:${X(0)-5}px;width:${pos*W+10}px"></span>`;
   const here = pos===null ? -1 : Math.round(pos);
   seq.forEach((s, i)=>{
@@ -2237,7 +2242,7 @@ function updateProgress(){
   });
   if(pos!==null) tr += `<span class="pme" style="left:${X(pos)}px"></span>`;
   const old = host.querySelector('.pscroll'), keep = old ? old.scrollLeft : null;
-  host.innerHTML = `<div class="prog"><div class="ptxt">${txt}${sub?`<small>${esc(sub)}</small>`:''}</div>
+  host.innerHTML = `<div class="prog"><div class="ptxt">${src ? `<span class="pmain">${txt}</span>` : txt}${remTxt?`<span class="prem">${esc(remTxt)}</span>`:''}${sub?`<small>${esc(sub)}</small>`:''}</div>
     <div class="pscroll"><div class="ptrack" style="width:${X(n-1)+150}px">${tr}</div></div></div>`;
   const sc = host.querySelector('.pscroll');
   // 내 위치가 가운데 오게 — 손가락으로 옮겼으면 1분 동안은 그대로(2026-11-14 사용자)
