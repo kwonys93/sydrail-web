@@ -1917,8 +1917,10 @@ function opalFare(legs, q){
   for(const g of legs){
     const ts = g.trip.times.slice(g.bi, g.ai+1);
     for(let i=1;i<ts.length;i++) dist += km(ts[i-1].st, ts[i].st);
-    if([ts[0].st, ts[ts.length-1].st].some(n=>/Airport/.test(n))) airport = true;
   }
+  // 공항역 이용료는 공항역에서 탈 때·내릴 때만(지나가기만 하면 없음). 갈아타는 곳은 카드를 안 찍으므로 처음 탄 역·마지막 내린 역만 봄(2026-11-16 확인)
+  const z = legs[legs.length-1];
+  airport = [legs[0].trip.times[legs[0].bi].st, z.trip.times[z.ai].st].some(n=>/Airport/.test(n));
   const tapOn = legs[0].trip.times[legs[0].bi].t, m = ((tapOn%1440)+1440)%1440;
   const holiday = NSW_HOLIDAYS.includes(q.ymd), monThu = ['Mon','Tue','Wed','Thu'].includes(q.weekday) && !holiday;
   const peak = monThu && ((m >= 390 && m < 600) || (m >= 900 && m < 1140));
