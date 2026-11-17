@@ -2250,6 +2250,13 @@ function trackMe(lk, seq, m0){
     if(!lk.boarded) return;
   }
   const sh = lk.shift || 0, tpos = sh ? null : trainPosOn(seq, timePos(seq, m0));
+  // 출발 직후 빠른 확인(2026-11-17 사용자: 역 건너편 신호등에 서 있는데 탄 것으로 시작): 열차가 떠난 지 45초가 넘었는데
+  // 그 뒤에 새로 잡힌 내 위치가 아직 출발역 300m 안(두 번·8초 이상·좌표가 다름)이면 안 탄 것 → 다음 열차로. 열차가 아직 출발역에 서 있으면(실시간 위치) 기다림
+  { const o = STOPLL[seq[0].st], since = m0 - seq[0].dep;
+    if(o && !sh && since > 0.75 && since < 8 && !(tpos!==null && tpos < 0.15) && now - (lk.manualAt || 0) > 90000 && now - relockAt > 60000){
+      const G = F.filter(f=>f.acc <= 120 && f.age < since - 0.66 && Math.hypot((o[1]-f.lon)*111.32*Math.cos(f.lat*Math.PI/180), (o[0]-f.lat)*110.57) < 0.3);
+      if(G.length >= 2 && G[G.length-1].at - G[0].at >= 8000 && G.some(f=>f.lat!==G[0].lat || f.lon!==G[0].lon)){ relockNext(); return; }
+    } }
   const tT = tpos!==null ? timeAtPos(seq, tpos, m0) : m0 + sh;             // 고정한(맞춘) 열차가 지금 있는 곳의 시간표 시각
   const D = f => f.pos===null ? null : timeAtPos(seq, f.pos, tT - f.age) - (tT - f.age);   // +: 내가 그 열차보다 앞, −: 뒤(분)
   const dl = D(last), dp = prev ? D(prev) : null, manual = now - (lk.manualAt || 0) < 90000;
