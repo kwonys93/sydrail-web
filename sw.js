@@ -10,3 +10,16 @@ self.addEventListener('notificationclick', e => {
   e.notification.close();
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => cs.length ? cs[0].focus() : self.clients.openWindow('./')));
 });
+// 2026-11-17 서버 푸시: 서버가 "앞 역을 떠났어요" 신호(내용 없음)를 보내면, 화면이 저장해 둔 문구(Cache 'sydrail-alarm')로 폰 알림을 띄운다 — 앱이 뒤에 있거나 화면이 꺼져 있어도
+self.addEventListener('push', e => e.waitUntil((async () => {
+  let info = null;
+  try {
+    const c = await caches.open('sydrail-alarm'), t = await c.match('alarm-test');
+    if (t) { const j = await t.json(); await c.delete('alarm-test'); if (Date.now() < j.exp) info = j; }   // 시험 알림(잠깐만 유효)
+    if (!info) { const r = await c.match('alarm-info'); if (r) info = await r.json(); }
+  } catch (_) {}
+  if (!info) info = { title: '🔔 Sydrail', body: '다음 역에서 내려요 · Get off at the next stop' };
+  await self.registration.showNotification(info.title, { body: info.body, tag: info.test ? 'sydrail-test' : 'sydrail-alarm', renotify: true, requireInteraction: !info.test, vibrate: [600, 200, 600, 200, 600, 200, 1200], icon: 'icon-192.png' });
+  const cs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  cs.forEach(c => c.postMessage({ type: 'alarm-push', test: !!info.test }));
+})()));
