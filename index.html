@@ -876,7 +876,9 @@ function loadLock(){
     if(k && k.ymd===now.ymd && Array.isArray(k.legs) && k.legs.length && k.legs.every(g=>g.trip && Array.isArray(g.trip.times) && g.trip.times[g.ai] && g.trip.times[g.bi]) && lockEnd(k) + 20 >= now.mod) tripLock = k;
   }catch(e){}
 }
+let relockSkip = null;                                                   // 놓친 열차(다시 고르지 않게, 2026-11-18)
 function relockNext(){                                                   // 고정한 열차를 놓친 게 확실할 때: 다음 열차로
+  if(tripLock) relockSkip = {key:tripLock.key, sdep:tripLock.sdep};
   tripLock = null; relockAt = Date.now();
   for(const k of Object.keys(live.trip)) if(k.startsWith(od.from+'|'+od.to+'|')) delete live.trip[k];
   setTimeout(renderRoute); toast(T('앞 열차는 떠났어요. 다음 열차로 바꿨어요.'));
@@ -1868,7 +1870,12 @@ function renderRoute(){
       const m = r.live && (r.all || [r.fast, r.few].filter(Boolean)).find(L=>lockMatch(L, tripLock));
       if(m){ tripLock.legs = m; tripLock.at = Date.now(); }
       legs = tripLock.legs;
-    } else if(legs && both.live){ tripLock = {key:lockKey(), ymd:now.ymd, legs, sdep:legsDep(legs), at:Date.now(), maxPos:0, boarded:false, shift:0}; }
+    } else if(legs && both.live){
+      if(relockSkip && relockSkip.key===lockKey() && legsDep(legs) <= relockSkip.sdep + 0.05){   // 방금 놓친 열차는 빼고 그다음 열차
+        const arrT = L => L[L.length-1].trip.times[L[L.length-1].ai].t, alt = (both.all || []).filter(L=>legsDep(L) > relockSkip.sdep + 0.05).sort((a, b)=>routeMode==='few' ? a.length - b.length || arrT(a) - arrT(b) : arrT(a) - arrT(b) || a.length - b.length)[0];
+        legs = alt || legs; routeLegs = legs;
+      }
+      tripLock = {key:lockKey(), ymd:now.ymd, legs, sdep:legsDep(legs), at:Date.now(), maxPos:0, boarded:false, shift:0}; }
   } else tripLock = null;
   saveLock();
   routeLegs = legs;
@@ -2139,11 +2146,12 @@ window.sydrailBack = () => {
   window.ReactNativeWebView?.postMessage('exit');
 };
 // ----- 경로 진행 상황: 폰 위치(GPS)를 경로의 역 좌표(교통국)에 맞춰, 지금 어느 역 사이인지 -----
-const geo = {pos:null, at:0, watch:null, err:null, hist:[], on: store('geoOn')==='1'};
+const geo = {pos:null, at:0, watch:null, err:null, hist:[], good:null, on: store('geoOn')==='1'};
+let visAt = Date.now(); document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) visAt = Date.now(); });   // 다른 앱에서 돌아온 직후엔 위치가 묵어 있음
 function startGeo(fresh){
   if(!navigator.geolocation){ geo.err = 'none'; return updateProgress(); }
   geo.on = true; store('geoOn', '1');
-  const ok = p => { geo.pos = {lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy}; geo.at = Math.min(Date.now(), p.timestamp || Infinity); geo.err = null; updateProgress(); };
+  const ok = p => { geo.pos = {lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy}; geo.at = Math.min(Date.now(), p.timestamp || Infinity); geo.err = null; if(p.coords.accuracy <= 150) geo.good = {...geo.pos, at:geo.at}; updateProgress(); };
   const bad = e => { geo.err = e.code || 'x'; updateProgress(); };
   if(fresh) navigator.geolocation.getCurrentPosition(ok, bad, {enableHighAccuracy:true, maximumAge:0, timeout:20000});
   if(geo.watch===null) geo.watch = navigator.geolocation.watchPosition(ok, bad, {enableHighAccuracy:true, maximumAge:10000, timeout:30000});
@@ -2243,19 +2251,19 @@ function trackMe(lk, seq, m0){
   if(!last || now - last.at > 45000) return;                              // 새 위치가 없으면(지하 등) 열차 위치·시각으로 계속
   if(!lk.boarded){
     // 경로를 따라 걷는 속도보다 빠르게 가고 있으면 → 타고 가는 중
-    if(prev && last.pos!==null && prev.pos!==null && last.pos >= 0.3 && last.pos > prev.pos && last.at - prev.at >= 4000){
+    if(prev && last.acc <= 50 && prev.acc <= 50 && last.pos!==null && prev.pos!==null && last.pos >= 0.3 && last.pos > prev.pos && last.at - prev.at >= 4000 && last.at - prev.at <= 60000){
       const km = Math.hypot((last.lon-prev.lon)*111.32*Math.cos(last.lat*Math.PI/180), (last.lat-prev.lat)*110.57);
-      if(km >= 0.25 && km / ((last.at - prev.at)/3600000) >= 18){ lk.boarded = true; lk.manualAt = now; }
+      if(km >= 0.3 && km / ((last.at - prev.at)/3600000) >= 20){ lk.boarded = true; lk.boardBy = 'move'; lk.manualAt = now; }   // 정확한 위치 두 개로 300m 넘게, 시속 20km 넘게
     }
     // 열차가 떠난 지 2분이 넘었는데 내 위치가 선로 위(출발역을 지난 곳)가 아니면 → 놓침: 다음 열차로
-    if(!lk.boarded && m0 > seq[0].dep + 2 && prev && last.acc <= 150 && prev.acc <= 150 && !(last.pos > 0.15) && !(prev.pos > 0.15) && now - relockAt > 60000){ relockNext(); return; }
+    if(!lk.boarded && m0 > seq[0].dep + 1.5 && prev && last.acc <= 150 && prev.acc <= 150 && last.age < m0 - seq[0].dep - 1 && prev.age < m0 - seq[0].dep - 1 && !(last.pos > 0.15) && !(prev.pos > 0.15) && now - relockAt > 60000){ relockNext(); return; }   // 열차가 떠나고 1분 뒤에 잡힌 위치 두 개가 아직 출발역 쪽(열차가 조금 늦게 떠나도 괜찮게 1분 30초 기다림)
     if(!lk.boarded) return;
   }
   const sh = lk.shift || 0, tpos = sh ? null : trainPosOn(seq, timePos(seq, m0));
   // 출발 직후 빠른 확인(2026-11-17 사용자: 역 건너편 신호등에 서 있는데 탄 것으로 시작): 열차가 떠난 지 45초가 넘었는데
   // 그 뒤에 새로 잡힌 내 위치가 아직 출발역 300m 안(두 번·8초 이상·좌표가 다름)이면 안 탄 것 → 다음 열차로. 열차가 아직 출발역에 서 있으면(실시간 위치) 기다림
   { const o = STOPLL[seq[0].st], since = m0 - seq[0].dep;
-    if(o && !sh && since > 0.75 && since < 8 && !(tpos!==null && tpos < 0.15) && now - (lk.manualAt || 0) > 90000 && now - relockAt > 60000){
+    if(o && !sh && since > 0.75 && since < 10 && lk.boardBy!=='manual' && !(tpos!==null && tpos < 0.15) && now - relockAt > 60000){
       const G = F.filter(f=>f.acc <= 120 && f.age < since - 0.66 && Math.hypot((o[1]-f.lon)*111.32*Math.cos(f.lat*Math.PI/180), (o[0]-f.lat)*110.57) < 0.3);
       if(G.length >= 2 && G[G.length-1].at - G[0].at >= 8000 && G.some(f=>f.lat!==G[0].lat || f.lon!==G[0].lon)){ relockNext(); return; }
     } }
@@ -2291,10 +2299,15 @@ function updateProgress(){
   const gpsGood = geo.on && geo.pos && !geo.err && geo.pos.acc <= 150 && Date.now() - geo.at < 60000;
   const tl = trainLive.data && Date.now() - trainLive.data.got < 90000 && trainLive.key ? trainLive.data : null;
   // 단계(2026-11-14 확정): 탑승 전 = 폰 위치로 출발역까지 / 탑승 후 = 열차 실시간 위치 → 없으면 시간표(폰 위치는 안 씀, 열차 안에서 튐)
-  if(lk && !lk.boarded && started){
-    const nearO = (()=>{ const c = STOPLL[seq[0].st]; return geo.pos && c ? Math.hypot((c[1]-geo.pos.lon)*111.32*Math.cos(geo.pos.lat*Math.PI/180), (c[0]-geo.pos.lat)*110.57) : null; })();
-    if(nearO!==null && nearO < 0.3 && geo.pos.acc <= 300) atOrigin.add(routeKey());
-    if(atOrigin.has(routeKey())) lk.boarded = true;
+  // 탑승 판단(2026-11-18 고침 — 사용자: 역에 가지도 않았는데 진척도가 시작됨). 예전엔 출발 시각에 출발역 300m 안(위치 오차 ±300m 허용)이면 '탐'.
+  // 이제 '역 근처'만으로는 타지 않는다. 탈 때는: ① 🚆 버튼 ② 폰이 선로를 따라 열차 속도로 움직임(trackMe) ③ 지하 규칙(아래)
+  // ③ 지하 규칙: 출발 6분 전~출발 사이에 출발역 200m 안에서 정확한 위치(±150m)가 잡힌 뒤 위치가 끊겼고(45초 넘게 새 위치 없음 = 지하 승강장·열차 안),
+  //    열차 출발 30초가 지났으면 탄 것으로 본다. 다른 앱에서 막 돌아왔으면(20초 안) 새 위치를 기다린다. 나중에 새 위치가 역 근처면 trackMe가 되돌린다.
+  if(lk && !lk.boarded && started && m0 >= seq[0].dep + 0.5 && geo.on && geo.good && Date.now() - visAt >= 20000){
+    const c = STOPLL[seq[0].st], g = geo.good, gAge = (Date.now() - g.at)/60000;
+    const dO = c ? Math.hypot((c[1]-g.lon)*111.32*Math.cos(g.lat*Math.PI/180), (c[0]-g.lat)*110.57) : 9;
+    const fresh = geo.pos && Date.now() - geo.at < 45000 && geo.pos.acc <= 150;
+    if(dO <= 0.2 && gAge >= 0.75 && m0 - gAge >= seq[0].dep - 6 && !fresh){ lk.boarded = true; lk.boardBy = 'under'; saveLock(); }
   }
   const boardedS = lk ? lk.boarded : started;
   if(lk) boardBtn = `<button class="pmove" data-board="1" aria-pressed="${lk.boarded}">🚆 ${T('타고 이동 중')}${lk.boarded ? ' ✓' : ''}</button>`;   // 진척도 오른쪽 아래: 누르면 이 경로로 이동 중(탑승)으로 보고 열차 위치를 보여 줌
@@ -2323,7 +2336,7 @@ function updateProgress(){
       txt = '📍 ' + T('경로에서 {k}km 떨어져 있어요 · 가장 가까운 역 {s}', {k:(w ? w.d : 0).toFixed(1), s:near});
     } else if(lk ? !lk.boarded : (m!==null && m < seq[0].dep && !atOrigin.has(routeKey()))){   // 출발 전: 경로 근처에 있어도 아직 출발역으로 가는 중(2026-11-14 사용자)
       const c = STOPLL[seq[0].st], dk = c ? Math.hypot((c[1]-geo.pos.lon)*111.32*Math.cos(geo.pos.lat*Math.PI/180), (c[0]-geo.pos.lat)*110.57) : null;
-      if(dk!==null && dk < 0.25){ atOrigin.add(routeKey()); txt = '📍 ' + T('지금 {s}역', {s:seq[0].st}); pos = 0; }
+      if(dk!==null && dk < 0.25 && geo.pos.acc <= 100){ atOrigin.add(routeKey()); txt = '📍 ' + T('지금 {s}역', {s:seq[0].st}); pos = 0; }
       else txt = '📍 ' + T('출발 전 · {s}역까지 약 {k}km', {s:seq[0].st, k:(dk ?? 0).toFixed(1)});
       if(m!==null) sub = (seq[0].dep - m < -0.5 ? T('이 열차는 이미 떠났어요') : T('열차 출발까지 {n}분', {n:Math.max(0, Math.round(seq[0].dep - m))})) + ' · ' + T('폰 위치 기준 · {s}초 전 · 정확도 ±{m}m', {s:Math.round((Date.now()-geo.at)/1000), m:Math.round(geo.pos.acc)});
     } else {
@@ -2370,7 +2383,7 @@ function updateProgress(){
   sc.scrollLeft = pos!==null && Date.now() - progTouchAt > 60000 ? X(pos) - sc.clientWidth/2 : (keep || 0);
   for(const ev of ['pointerdown','touchstart','wheel']) sc.addEventListener(ev, ()=>{ progTouchAt = Date.now(); }, {passive:true});
 }
-document.addEventListener('click', e=>{ if(e.target.closest('#geoBtn')) startGeo(true); if(e.target.closest('[data-board]') && tripLock){ tripLock.boarded = !tripLock.boarded; if(!tripLock.boarded){ tripLock.maxPos = 0; tripLock.shift = 0; tripLock.ret = null; } else { tripLock.manualAt = Date.now(); if(geo.on) startGeo(true); } saveLock(); renderRoute(); } });
+document.addEventListener('click', e=>{ if(e.target.closest('#geoBtn')) startGeo(true); if(e.target.closest('[data-board]') && tripLock){ tripLock.boarded = !tripLock.boarded; if(!tripLock.boarded){ tripLock.maxPos = 0; tripLock.shift = 0; tripLock.ret = null; } else { tripLock.manualAt = Date.now(); tripLock.boardBy = 'manual'; if(geo.on) startGeo(true); } saveLock(); renderRoute(); } });
 setInterval(()=>{ if(!$('routeview').hidden) updateProgress(); }, 5000);   // 시간·열차 위치로도 움직이게(폰 위치가 안 바뀌어도)
 function finishRoute(dest){
   try{ navigator.vibrate && navigator.vibrate([300,150,300]); }catch(e){}
